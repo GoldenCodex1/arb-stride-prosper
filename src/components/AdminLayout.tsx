@@ -1,0 +1,129 @@
+import { useState } from "react";
+import { Link, useLocation, Outlet } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  LayoutDashboard,
+  TrendingUp,
+  Bot,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Users,
+  History,
+  Gift,
+  ShieldCheck,
+  Wallet,
+  Settings,
+  Lock,
+  FileText,
+  LogOut,
+  Menu,
+  X,
+  ChevronLeft,
+} from "lucide-react";
+
+const adminNavItems = [
+  { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
+  { label: "Trade Opportunities", path: "/admin/trades", icon: TrendingUp },
+  { label: "Auto Bot Settings", path: "/admin/bot", icon: Bot },
+  { label: "Manual Deposits", path: "/admin/deposits", icon: ArrowDownToLine },
+  { label: "Withdrawals", path: "/admin/withdrawals", icon: ArrowUpFromLine },
+  { label: "Users", path: "/admin/users", icon: Users },
+  { label: "Transactions", path: "/admin/transactions", icon: History },
+  { label: "Referrals", path: "/admin/referrals", icon: Gift },
+  { label: "KYC", path: "/admin/kyc", icon: ShieldCheck },
+  { label: "Wallet Settings", path: "/admin/wallets", icon: Wallet },
+  { label: "API Settings", path: "/admin/api", icon: Settings },
+  { label: "System Settings", path: "/admin/system", icon: Settings },
+  { label: "Security Logs", path: "/admin/security", icon: Lock },
+];
+
+export default function AdminLayout() {
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 flex-col border-r border-border/30 bg-sidebar fixed top-0 bottom-0 left-0 z-40">
+        <div className="p-4 border-b border-border/30">
+          <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <ChevronLeft className="w-4 h-4" /> Back to App
+          </Link>
+          <div className="mt-3 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-display font-bold text-sm">A</span>
+            </div>
+            <span className="font-display font-bold">Admin Panel</span>
+          </div>
+        </div>
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+          {adminNavItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`nav-link text-sm ${location.pathname === item.path ? "active" : ""}`}
+            >
+              <item.icon className="w-4 h-4" />
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="p-3 border-t border-border/30">
+          <button className="nav-link text-sm w-full text-destructive">
+            <LogOut className="w-4 h-4" /> Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center justify-between px-4 h-14">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-display font-bold text-xs">A</span>
+            </div>
+            <span className="font-display font-bold text-sm">Admin</span>
+          </div>
+          <button onClick={() => setSidebarOpen(true)} className="p-2">
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <>
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+          <motion.aside
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            className="fixed left-0 top-0 bottom-0 w-72 bg-sidebar border-r border-sidebar-border z-50 p-4 overflow-y-auto lg:hidden"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <span className="font-display font-bold">Admin</span>
+              <button onClick={() => setSidebarOpen(false)}><X className="w-5 h-5" /></button>
+            </div>
+            <nav className="space-y-0.5">
+              {adminNavItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`nav-link text-sm ${location.pathname === item.path ? "active" : ""}`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <item.icon className="w-4 h-4" />
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </motion.aside>
+        </>
+      )}
+
+      {/* Main Content */}
+      <main className="flex-1 lg:ml-64 p-6 pt-20 lg:pt-6">
+        <Outlet />
+      </main>
+    </div>
+  );
+}
