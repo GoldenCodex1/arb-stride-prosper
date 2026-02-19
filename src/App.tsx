@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
 import AdminLayout from "@/components/AdminLayout";
+import Homepage from "@/pages/Homepage";
 import Dashboard from "@/pages/Dashboard";
 import Portfolio from "@/pages/Portfolio";
 import Deposit from "@/pages/Deposit";
@@ -19,6 +20,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminTrades from "@/pages/admin/AdminTrades";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminPlaceholder from "@/pages/admin/AdminPlaceholder";
+import AdminHomepageControl from "@/pages/admin/AdminHomepageControl";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,10 +33,12 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Homepage />} />
             <Route path="/auth" element={<Auth />} />
 
             {/* Protected User Routes */}
-            <Route path="/" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
             <Route path="/portfolio" element={<ProtectedRoute><AppLayout><Portfolio /></AppLayout></ProtectedRoute>} />
             <Route path="/deposit" element={<ProtectedRoute><AppLayout><Deposit /></AppLayout></ProtectedRoute>} />
             <Route path="/withdraw" element={<ProtectedRoute><AppLayout><Withdraw /></AppLayout></ProtectedRoute>} />
@@ -57,6 +61,7 @@ const App = () => (
               <Route path="api" element={<AdminPlaceholder title="API Settings" />} />
               <Route path="system" element={<AdminPlaceholder title="System Settings" />} />
               <Route path="security" element={<AdminPlaceholder title="Security Logs" />} />
+              <Route path="homepage-control" element={<AdminHomepageControl />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

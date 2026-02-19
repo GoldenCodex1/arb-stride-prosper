@@ -155,6 +155,30 @@ export type Database = {
         }
         Relationships: []
       }
+      homepage_faq: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          question: string
+          sort_order: number
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          question: string
+          sort_order?: number
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          question?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       kyc: {
         Row: {
           admin_note: string | null
@@ -188,6 +212,33 @@ export type Database = {
           status?: string
           submitted_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      platform_stats: {
+        Row: {
+          auto_calculate: boolean
+          id: string
+          key: string
+          label: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          auto_calculate?: boolean
+          id?: string
+          key: string
+          label: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          auto_calculate?: boolean
+          id?: string
+          key?: string
+          label?: string
+          updated_at?: string
+          value?: string
         }
         Relationships: []
       }

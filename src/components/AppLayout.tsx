@@ -20,7 +20,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 const userNavItems = [
-  { label: "Dashboard", path: "/", icon: LayoutDashboard },
+  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Portfolio", path: "/portfolio", icon: Briefcase },
   { label: "Deposit", path: "/deposit", icon: ArrowDownToLine },
   { label: "Withdraw", path: "/withdraw", icon: ArrowUpFromLine },
