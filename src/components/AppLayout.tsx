@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   LayoutDashboard,
   Briefcase,
@@ -30,8 +31,15 @@ const userNavItems = [
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -102,7 +110,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <Link to="/profile" className="nav-link text-sm" onClick={() => setAvatarOpen(false)}>
                       <Settings className="w-4 h-4" /> Settings
                     </Link>
-                    <button className="nav-link text-sm w-full text-destructive">
+                    <button onClick={handleLogout} className="nav-link text-sm w-full text-destructive">
                       <LogOut className="w-4 h-4" /> Logout
                     </button>
                   </motion.div>
