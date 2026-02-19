@@ -35,6 +35,7 @@ const adminNavItems = [
   { label: "API Settings", path: "/admin/api", icon: Settings },
   { label: "System Settings", path: "/admin/system", icon: Settings },
   { label: "Security Logs", path: "/admin/security", icon: Lock },
+  { label: "Homepage Control", path: "/admin/homepage-control", icon: FileText },
 ];
 
 export default function AdminLayout() {
