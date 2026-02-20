@@ -1,13 +1,28 @@
 import { motion } from "framer-motion";
-
-const users = [
-  { name: "John Doe", email: "john@example.com", balance: "$24,580", kyc: "Verified", status: "Active", joined: "Jan 2025" },
-  { name: "Alice Martin", email: "alice@example.com", balance: "$12,340", kyc: "Pending", status: "Active", joined: "Jan 2025" },
-  { name: "Bob Smith", email: "bob@example.com", balance: "$5,200", kyc: "Verified", status: "Frozen", joined: "Dec 2024" },
-  { name: "Eve Wilson", email: "eve@example.com", balance: "$8,900", kyc: "Rejected", status: "Active", joined: "Dec 2024" },
-];
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function AdminUsers() {
+  const queryClient = useQueryClient();
+
+  const { data: profiles } = useQuery({
+    queryKey: ["admin-profiles"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const toggleFreeze = async (userId: string, current: boolean) => {
+    const { error } = await supabase.from("profiles").update({ is_frozen: !current }).eq("user_id", userId);
+    if (error) toast.error(error.message);
+    else {
+      toast.success(current ? "User unfrozen" : "User frozen");
+      queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
+    }
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <h1 className="font-display font-bold text-2xl">Users</h1>
@@ -18,38 +33,41 @@ export default function AdminUsers() {
             <thead>
               <tr className="border-b border-border/30">
                 <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Name</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Email</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Balance</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">User ID</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">KYC</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Status</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((u, i) => (
-                <tr key={i} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
-                  <td className="px-4 py-3 font-medium">{u.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
-                  <td className="px-4 py-3 font-display font-semibold">{u.balance}</td>
+              {profiles?.map((p) => (
+                <tr key={p.id} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
+                  <td className="px-4 py-3 font-medium">{p.full_name || "—"}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{p.user_id.slice(0, 12)}...</td>
                   <td className="px-4 py-3">
                     <span className={
-                      u.kyc === "Verified" ? "status-badge-success" :
-                      u.kyc === "Pending" ? "status-badge-warning" : "status-badge-danger"
-                    }>{u.kyc}</span>
+                      p.kyc_status === "approved" ? "status-badge-success" :
+                      p.kyc_status === "pending" ? "status-badge-warning" : "status-badge-danger"
+                    }>{p.kyc_status}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={u.status === "Active" ? "status-badge-success" : "status-badge-danger"}>
-                      {u.status}
+                    <span className={p.is_frozen ? "status-badge-danger" : "status-badge-success"}>
+                      {p.is_frozen ? "Frozen" : "Active"}
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button className="text-xs text-primary hover:underline">Edit</button>
-                      <button className="text-xs text-destructive hover:underline">Freeze</button>
-                    </div>
+                    <button
+                      onClick={() => toggleFreeze(p.user_id, p.is_frozen)}
+                      className={`text-xs font-medium hover:underline ${p.is_frozen ? "text-success" : "text-destructive"}`}
+                    >
+                      {p.is_frozen ? "Unfreeze" : "Freeze"}
+                    </button>
                   </td>
                 </tr>
               ))}
+              {(!profiles || profiles.length === 0) && (
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No users found.</td></tr>
+              )}
             </tbody>
           </table>
         </div>

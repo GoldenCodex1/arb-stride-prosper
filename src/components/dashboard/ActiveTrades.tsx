@@ -1,17 +1,28 @@
-const activeTrades = [
-  { id: 1, title: "BTC/USDT Spread", invested: "$1,000", roi: "+4.2%", timeLeft: "1h 10m", status: "Running" },
-  { id: 2, title: "ETH Triangle Arb", invested: "$2,500", roi: "+6.8%", timeLeft: "3h 20m", status: "Running" },
-  { id: 3, title: "SOL/BNB Cross-DEX", invested: "$500", roi: "+3.1%", timeLeft: "25m", status: "Completing" },
-  { id: 4, title: "AVAX-ETH Bridge", invested: "$800", roi: "+2.9%", timeLeft: "50m", status: "Running" },
-  { id: 5, title: "XRP Liquidity Pool", invested: "$1,200", roi: "+5.4%", timeLeft: "2h 05m", status: "Running" },
-];
+import type { Tables } from "@/integrations/supabase/types";
+
+interface TradeEntryWithTrade extends Tables<"trade_entries"> {
+  trades: Tables<"trades"> | null;
+}
+
+interface Props {
+  entries: TradeEntryWithTrade[];
+}
 
 const statusClass: Record<string, string> = {
-  Running: "status-badge-info",
-  Completing: "status-badge-warning",
+  active: "status-badge-info",
+  completing: "status-badge-warning",
+  completed: "status-badge-success",
 };
 
-export default function ActiveTrades() {
+export default function ActiveTrades({ entries }: Props) {
+  if (entries.length === 0) {
+    return (
+      <div className="glass-card p-8 text-center">
+        <p className="text-sm text-muted-foreground">No active trades. Join a suggested trade to get started.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="glass-card overflow-hidden">
       <div className="overflow-x-auto">
@@ -21,22 +32,24 @@ export default function ActiveTrades() {
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Trade</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Invested</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">ROI</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Time Left</th>
               <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Status</th>
             </tr>
           </thead>
           <tbody>
-            {activeTrades.map((trade) => (
-              <tr key={trade.id} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
-                <td className="px-4 py-3 font-medium font-display">{trade.title}</td>
-                <td className="px-4 py-3">{trade.invested}</td>
-                <td className="px-4 py-3 text-success font-semibold">{trade.roi}</td>
-                <td className="px-4 py-3 text-muted-foreground">{trade.timeLeft}</td>
-                <td className="px-4 py-3">
-                  <span className={statusClass[trade.status]}>{trade.status}</span>
-                </td>
-              </tr>
-            ))}
+            {entries.map((entry) => {
+              const roi = entry.trades ? Number(entry.trades.roi_percent) : 0;
+              const expectedProfit = Number(entry.amount) * (roi / 100);
+              return (
+                <tr key={entry.id} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
+                  <td className="px-4 py-3 font-medium font-display">{entry.trades?.title ?? "Unknown"}</td>
+                  <td className="px-4 py-3">${Number(entry.amount).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-success font-semibold">+${expectedProfit.toFixed(2)} ({roi}%)</td>
+                  <td className="px-4 py-3">
+                    <span className={statusClass[entry.status] || "status-badge-pending"}>{entry.status}</span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

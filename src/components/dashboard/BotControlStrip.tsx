@@ -1,13 +1,39 @@
-import { useState } from "react";
 import { Bot, Power, ShieldAlert, TrendingUp, TrendingDown, BarChart3, Timer } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { Tables } from "@/integrations/supabase/types";
 
-export default function BotControlStrip() {
-  const [botOn, setBotOn] = useState(false);
+interface Props {
+  botActivity: Tables<"bot_activity"> | null;
+}
+
+export default function BotControlStrip({ botActivity }: Props) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const botOn = botActivity?.bot_enabled ?? false;
+
+  const toggleBot = async () => {
+    if (!user || !botActivity) return;
+    const { error } = await supabase
+      .from("bot_activity")
+      .update({ bot_enabled: !botOn })
+      .eq("user_id", user.id);
+    if (error) {
+      toast.error("Failed to toggle bot");
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["bot-activity"] });
+      toast.success(botOn ? "Bot deactivated" : "Bot activated");
+    }
+  };
+
+  const fmt = (n: number) =>
+    "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
     <div className="glass-card p-4">
       <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-8">
-        {/* Left — Controls */}
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <Bot className="w-5 h-5 text-primary" />
@@ -15,7 +41,7 @@ export default function BotControlStrip() {
           </div>
 
           <button
-            onClick={() => setBotOn(!botOn)}
+            onClick={toggleBot}
             className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
               botOn ? "bg-success" : "bg-muted"
             }`}
@@ -34,16 +60,15 @@ export default function BotControlStrip() {
 
           <span className="status-badge-info text-xs">
             <ShieldAlert className="w-3 h-3" />
-            Moderate
+            {botActivity?.risk_profile ?? "Moderate"}
           </span>
         </div>
 
-        {/* Right — Stats */}
         <div className="flex items-center gap-6 flex-wrap ml-auto">
-          <Stat icon={TrendingUp} label="Today's Profit" value="+$84.20" className="text-success" />
-          <Stat icon={TrendingDown} label="Today's Loss" value="-$12.00" className="text-destructive" />
-          <Stat icon={BarChart3} label="Trades Today" value="7" />
-          <Stat icon={Timer} label="Daily Limit" value="15" />
+          <Stat icon={TrendingUp} label="Today's Profit" value={`+${fmt(botActivity?.profit_today ?? 0)}`} className="text-success" />
+          <Stat icon={TrendingDown} label="Today's Loss" value={`-${fmt(botActivity?.loss_today ?? 0)}`} className="text-destructive" />
+          <Stat icon={BarChart3} label="Trades Today" value={String(botActivity?.trades_today ?? 0)} />
+          <Stat icon={Timer} label="Daily Limit" value={String(botActivity?.daily_trade_limit ?? 15)} />
         </div>
       </div>
     </div>
