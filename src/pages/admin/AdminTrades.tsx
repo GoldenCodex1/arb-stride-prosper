@@ -1,23 +1,84 @@
 import { motion } from "framer-motion";
-import { Plus, TrendingUp } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
-
-const trades = [
-  { id: 1, title: "BTC/USDT Spread", roi: 4.2, duration: "2h", min: 100, max: 5000, risk: "Low", slots: 12, status: "Active" },
-  { id: 2, title: "ETH Triangle Arb", roi: 6.8, duration: "4h", min: 250, max: 10000, risk: "Medium", slots: 5, status: "Active" },
-  { id: 3, title: "SOL/BNB Cross-DEX", roi: 3.1, duration: "1h", min: 50, max: 2000, risk: "Low", slots: 20, status: "Draft" },
-  { id: 4, title: "MATIC Flash Loan", roi: 8.5, duration: "6h", min: 500, max: 20000, risk: "High", slots: 3, status: "Active" },
-];
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function AdminTrades() {
+  const queryClient = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    title: "", roi_percent: "", duration_hours: "", min_investment: "", max_investment: "",
+    risk_level: "Low", slot_limit: "20", status: "draft",
+  });
+
+  const { data: trades } = useQuery({
+    queryKey: ["admin-trades"],
+    queryFn: async () => {
+      const { data } = await supabase.from("trades").select("*").order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const handleCreate = async () => {
+    const { error } = await supabase.from("trades").insert({
+      title: form.title,
+      roi_percent: Number(form.roi_percent),
+      duration_hours: Number(form.duration_hours),
+      min_investment: Number(form.min_investment),
+      max_investment: Number(form.max_investment),
+      risk_level: form.risk_level,
+      slot_limit: Number(form.slot_limit),
+      status: form.status,
+    });
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Trade created");
+      setShowForm(false);
+      setForm({ title: "", roi_percent: "", duration_hours: "", min_investment: "", max_investment: "", risk_level: "Low", slot_limit: "20", status: "draft" });
+      queryClient.invalidateQueries({ queryKey: ["admin-trades"] });
+    }
+  };
+
+  const toggleStatus = async (id: string, current: string) => {
+    const next = current === "active" ? "draft" : "active";
+    const { error } = await supabase.from("trades").update({ status: next }).eq("id", id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success(`Trade ${next}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-trades"] });
+    }
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-display font-bold text-2xl">Trade Opportunities</h1>
-        <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+        <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
           <Plus className="w-4 h-4" /> Create Trade
         </button>
       </div>
+
+      {showForm && (
+        <div className="glass-card p-5 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground" />
+            <input placeholder="ROI %" type="number" value={form.roi_percent} onChange={(e) => setForm({ ...form, roi_percent: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground" />
+            <input placeholder="Duration (hours)" type="number" value={form.duration_hours} onChange={(e) => setForm({ ...form, duration_hours: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground" />
+            <input placeholder="Min Investment" type="number" value={form.min_investment} onChange={(e) => setForm({ ...form, min_investment: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground" />
+            <input placeholder="Max Investment" type="number" value={form.max_investment} onChange={(e) => setForm({ ...form, max_investment: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground" />
+            <select value={form.risk_level} onChange={(e) => setForm({ ...form, risk_level: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground">
+              <option>Low</option><option>Medium</option><option>High</option>
+            </select>
+            <input placeholder="Slot Limit" type="number" value={form.slot_limit} onChange={(e) => setForm({ ...form, slot_limit: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground" />
+            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground">
+              <option value="draft">Draft</option><option value="active">Active</option>
+            </select>
+          </div>
+          <button onClick={handleCreate} className="px-6 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">Save</button>
+        </div>
+      )}
 
       <div className="glass-card overflow-hidden">
         <div className="overflow-x-auto">
@@ -35,28 +96,29 @@ export default function AdminTrades() {
               </tr>
             </thead>
             <tbody>
-              {trades.map((t) => (
+              {trades?.map((t) => (
                 <tr key={t.id} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
                   <td className="px-4 py-3 font-display font-medium">{t.title}</td>
-                  <td className="px-4 py-3 text-success font-semibold">{t.roi}%</td>
-                  <td className="px-4 py-3">{t.duration}</td>
-                  <td className="px-4 py-3 text-muted-foreground">${t.min} – ${t.max.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-success font-semibold">{Number(t.roi_percent)}%</td>
+                  <td className="px-4 py-3">{Number(t.duration_hours)}h</td>
+                  <td className="px-4 py-3 text-muted-foreground">${Number(t.min_investment)} – ${Number(t.max_investment).toLocaleString()}</td>
                   <td className="px-4 py-3">
-                    <span className={t.risk === "Low" ? "status-badge-success" : t.risk === "Medium" ? "status-badge-warning" : "status-badge-danger"}>
-                      {t.risk}
-                    </span>
+                    <span className={t.risk_level === "Low" ? "status-badge-success" : t.risk_level === "Medium" ? "status-badge-warning" : "status-badge-danger"}>{t.risk_level}</span>
                   </td>
-                  <td className="px-4 py-3">{t.slots}</td>
+                  <td className="px-4 py-3">{t.slots_filled}/{t.slot_limit}</td>
                   <td className="px-4 py-3">
-                    <span className={t.status === "Active" ? "status-badge-success" : "status-badge-pending"}>
-                      {t.status}
-                    </span>
+                    <span className={t.status === "active" ? "status-badge-success" : "status-badge-pending"}>{t.status}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <button className="text-xs text-primary hover:underline">Edit</button>
+                    <button onClick={() => toggleStatus(t.id, t.status)} className="text-xs text-primary hover:underline">
+                      {t.status === "active" ? "Deactivate" : "Activate"}
+                    </button>
                   </td>
                 </tr>
               ))}
+              {(!trades || trades.length === 0) && (
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No trades yet.</td></tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -13,6 +13,8 @@ import Portfolio from "@/pages/Portfolio";
 import Deposit from "@/pages/Deposit";
 import Withdraw from "@/pages/Withdraw";
 import TradeHistory from "@/pages/TradeHistory";
+import Transactions from "@/pages/Transactions";
+import AutoBot from "@/pages/AutoBot";
 import Referral from "@/pages/Referral";
 import Profile from "@/pages/Profile";
 import Auth from "@/pages/Auth";
@@ -43,6 +45,8 @@ const App = () => (
             <Route path="/deposit" element={<ProtectedRoute><AppLayout><Deposit /></AppLayout></ProtectedRoute>} />
             <Route path="/withdraw" element={<ProtectedRoute><AppLayout><Withdraw /></AppLayout></ProtectedRoute>} />
             <Route path="/trades" element={<ProtectedRoute><AppLayout><TradeHistory /></AppLayout></ProtectedRoute>} />
+            <Route path="/transactions" element={<ProtectedRoute><AppLayout><Transactions /></AppLayout></ProtectedRoute>} />
+            <Route path="/auto-bot" element={<ProtectedRoute><AppLayout><AutoBot /></AppLayout></ProtectedRoute>} />
             <Route path="/referral" element={<ProtectedRoute><AppLayout><Referral /></AppLayout></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
 
