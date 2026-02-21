@@ -62,7 +62,7 @@ export default function Profile() {
           <div>
             <p className="font-display font-bold text-lg">{profile?.full_name || "User"}</p>
             <p className="text-sm text-muted-foreground">
-              Member {profile ? formatDistanceToNow(new Date(profile.created_at), { addSuffix: false }) : ""}
+              Member {profile?.created_at && !isNaN(new Date(profile.created_at).getTime()) ? formatDistanceToNow(new Date(profile.created_at), { addSuffix: false }) : ""}
             </p>
           </div>
         </div>
