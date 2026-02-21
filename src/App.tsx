@@ -18,6 +18,7 @@ import AutoBot from "@/pages/AutoBot";
 import Referral from "@/pages/Referral";
 import Profile from "@/pages/Profile";
 import Auth from "@/pages/Auth";
+import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminTrades from "@/pages/admin/AdminTrades";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -38,6 +39,7 @@ const App = () => (
             {/* Public Routes */}
             <Route path="/" element={<Homepage />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected User Routes */}
             <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
