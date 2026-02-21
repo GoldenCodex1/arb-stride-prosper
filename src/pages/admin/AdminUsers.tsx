@@ -25,7 +25,7 @@ export default function AdminUsers() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <h1 className="font-display font-bold text-2xl">Users</h1>
+      <h1 className="font-display font-bold text-xl sm:text-2xl">Users</h1>
 
       <div className="glass-card overflow-hidden">
         <div className="overflow-x-auto">

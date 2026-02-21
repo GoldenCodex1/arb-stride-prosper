@@ -53,8 +53,8 @@ export default function AdminTrades() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display font-bold text-2xl">Trade Opportunities</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h1 className="font-display font-bold text-xl sm:text-2xl">Trade Opportunities</h1>
         <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
           <Plus className="w-4 h-4" /> Create Trade
         </button>
@@ -62,7 +62,7 @@ export default function AdminTrades() {
 
       {showForm && (
         <div className="glass-card p-5 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground" />
             <input placeholder="ROI %" type="number" value={form.roi_percent} onChange={(e) => setForm({ ...form, roi_percent: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground" />
             <input placeholder="Duration (hours)" type="number" value={form.duration_hours} onChange={(e) => setForm({ ...form, duration_hours: e.target.value })} className="bg-secondary border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground" />
