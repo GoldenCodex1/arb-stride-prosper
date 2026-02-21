@@ -6,7 +6,7 @@ import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Auth() {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -21,7 +21,17 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      if (mode === "signup") {
+      if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast({
+          title: "Reset link sent!",
+          description: "Check your email for a password reset link.",
+        });
+        setMode("login");
+      } else if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -70,17 +80,46 @@ export default function Auth() {
             <span className="text-primary-foreground font-display font-bold text-lg">A</span>
           </div>
           <h1 className="font-display font-bold text-2xl">
-            {mode === "login" ? "Welcome back" : "Create your account"}
+            {mode === "login" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset password"}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {mode === "login"
               ? "Sign in to access your portfolio"
-              : "Start investing in crypto arbitrage"}
+              : mode === "signup"
+              ? "Start investing in crypto arbitrage"
+              : "Enter your email to receive a reset link"}
           </p>
         </div>
 
         <div className="glass-card p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === "forgot" ? (
+              <>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="w-full bg-secondary border border-border/30 rounded-lg pl-10 pr-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground"
+                      required
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 rounded-lg font-semibold text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {loading ? "Sending..." : "Send Reset Link"}
+                  {!loading && <ArrowRight className="w-4 h-4" />}
+                </button>
+              </>
+            ) : (
+              <>
             {mode === "signup" && (
               <div>
                 <label className="text-xs text-muted-foreground mb-1.5 block">Full Name</label>
@@ -163,18 +202,45 @@ export default function Auth() {
               {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
               {!loading && <ArrowRight className="w-4 h-4" />}
             </button>
+
+            {mode === "login" && (
+              <button
+                type="button"
+                onClick={() => setMode("forgot")}
+                className="w-full text-center text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
+                Forgot your password?
+              </button>
+            )}
+            </>
+            )}
           </form>
 
           <div className="glow-line my-5" />
 
           <p className="text-center text-sm text-muted-foreground">
-            {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
-            <button
-              onClick={() => setMode(mode === "login" ? "signup" : "login")}
-              className="text-primary font-medium hover:underline"
-            >
-              {mode === "login" ? "Sign up" : "Sign in"}
-            </button>
+            {mode === "forgot" ? (
+              <>
+                Remember your password?{" "}
+                <button onClick={() => setMode("login")} className="text-primary font-medium hover:underline">
+                  Sign in
+                </button>
+              </>
+            ) : mode === "login" ? (
+              <>
+                Don't have an account?{" "}
+                <button onClick={() => setMode("signup")} className="text-primary font-medium hover:underline">
+                  Sign up
+                </button>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <button onClick={() => setMode("login")} className="text-primary font-medium hover:underline">
+                  Sign in
+                </button>
+              </>
+            )}
           </p>
         </div>
       </motion.div>
