@@ -77,12 +77,12 @@ export default function AdminHomepageControl() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-      <h2 className="font-display font-bold text-xl">Homepage Control</h2>
+      <h2 className="font-display font-bold text-xl sm:text-2xl">Homepage Control</h2>
 
       {/* Stats */}
       <div>
         <h3 className="font-display font-semibold mb-4">Live Stats</h3>
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {stats.map((stat) => (
             <div key={stat.id} className="glass-card p-4 space-y-3">
               <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>

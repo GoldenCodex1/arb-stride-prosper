@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   TrendingUp,
@@ -92,37 +92,47 @@ export default function AdminLayout() {
       </div>
 
       {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <>
-          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
-          <motion.aside
-            initial={{ x: "-100%" }}
-            animate={{ x: 0 }}
-            className="fixed left-0 top-0 bottom-0 w-72 bg-sidebar border-r border-sidebar-border z-50 p-4 overflow-y-auto lg:hidden"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <span className="font-display font-bold">Admin</span>
-              <button onClick={() => setSidebarOpen(false)}><X className="w-5 h-5" /></button>
-            </div>
-            <nav className="space-y-0.5">
-              {adminNavItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`nav-link text-sm ${location.pathname === item.path ? "active" : ""}`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </motion.aside>
-        </>
-      )}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25 }}
+              className="fixed left-0 top-0 bottom-0 w-72 bg-sidebar border-r border-sidebar-border z-50 p-4 overflow-y-auto lg:hidden"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <span className="font-display font-bold">Admin</span>
+                <button onClick={() => setSidebarOpen(false)}><X className="w-5 h-5" /></button>
+              </div>
+              <nav className="space-y-0.5">
+                {adminNavItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`nav-link text-sm ${location.pathname === item.path ? "active" : ""}`}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
 
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-64 p-6 pt-20 lg:pt-6">
+      {/* Main Content — matches user dashboard padding */}
+      <main className="flex-1 lg:ml-64 max-w-[1400px] w-full mx-auto px-4 py-6 pt-20 lg:pt-6">
         <Outlet />
       </main>
     </div>

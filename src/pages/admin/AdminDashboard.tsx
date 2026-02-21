@@ -66,9 +66,9 @@ export default function AdminDashboard() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <h1 className="font-display font-bold text-2xl">Admin Dashboard</h1>
+      <h1 className="font-display font-bold text-xl sm:text-2xl">Admin Dashboard</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <MetricCard label="Total Users" value={String(profileCount ?? 0)} icon={Users} />
         <MetricCard label="KYC Pending" value={String(kycPending ?? 0)} icon={ShieldCheck} />
         <MetricCard label="Deposit Queue" value={String(pendingDeposits?.length ?? 0)} icon={ArrowDownToLine} />
