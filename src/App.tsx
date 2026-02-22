@@ -23,6 +23,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminTrades from "@/pages/admin/AdminTrades";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminPlaceholder from "@/pages/admin/AdminPlaceholder";
+import AdminKyc from "@/pages/admin/AdminKyc";
 import AdminHomepageControl from "@/pages/admin/AdminHomepageControl";
 import NotFound from "@/pages/NotFound";
 
@@ -62,7 +63,7 @@ const App = () => (
               <Route path="withdrawals" element={<AdminPlaceholder title="Withdrawals" />} />
               <Route path="transactions" element={<AdminPlaceholder title="Transactions" />} />
               <Route path="referrals" element={<AdminPlaceholder title="Referrals" />} />
-              <Route path="kyc" element={<AdminPlaceholder title="KYC Management" />} />
+              <Route path="kyc" element={<AdminKyc />} />
               <Route path="wallets" element={<AdminPlaceholder title="Wallet Settings" />} />
               <Route path="api" element={<AdminPlaceholder title="API Settings" />} />
               <Route path="system" element={<AdminPlaceholder title="System Settings" />} />
