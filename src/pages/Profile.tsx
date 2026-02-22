@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Shield, Key, Smartphone } from "lucide-react";
+import { User, Mail, Shield, Key, Smartphone, Upload, FileCheck, Loader2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,10 @@ export default function Profile() {
   const queryClient = useQueryClient();
   const [fullName, setFullName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [docType, setDocType] = useState("passport");
+  const docInputRef = useRef<HTMLInputElement>(null);
+  const selfieInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -44,6 +48,53 @@ export default function Profile() {
     else {
       toast.success("Profile updated");
       queryClient.invalidateQueries({ queryKey: ["profile"] });
+    }
+  };
+
+  const handleKycUpload = async () => {
+    if (!user) return;
+    const docFile = docInputRef.current?.files?.[0];
+    const selfieFile = selfieInputRef.current?.files?.[0];
+    if (!docFile) { toast.error("Please select a document file"); return; }
+    if (!selfieFile) { toast.error("Please select a selfie file"); return; }
+
+    const maxSize = 5 * 1024 * 1024;
+    if (docFile.size > maxSize || selfieFile.size > maxSize) {
+      toast.error("Files must be under 5MB"); return;
+    }
+
+    setUploading(true);
+    try {
+      const docExt = docFile.name.split('.').pop();
+      const selfieExt = selfieFile.name.split('.').pop();
+      const docPath = `${user.id}/document-${Date.now()}.${docExt}`;
+      const selfiePath = `${user.id}/selfie-${Date.now()}.${selfieExt}`;
+
+      const [docUpload, selfieUpload] = await Promise.all([
+        supabase.storage.from("kyc-documents").upload(docPath, docFile),
+        supabase.storage.from("kyc-documents").upload(selfiePath, selfieFile),
+      ]);
+
+      if (docUpload.error) throw docUpload.error;
+      if (selfieUpload.error) throw selfieUpload.error;
+
+      const { error } = await supabase.from("kyc").insert({
+        user_id: user.id,
+        document_type: docType,
+        document_url: docPath,
+        selfie_url: selfiePath,
+        status: "pending",
+      });
+
+      if (error) throw error;
+      toast.success("KYC documents submitted for review");
+      queryClient.invalidateQueries({ queryKey: ["kyc"] });
+      if (docInputRef.current) docInputRef.current.value = "";
+      if (selfieInputRef.current) selfieInputRef.current.value = "";
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -109,14 +160,40 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="glass-card p-6">
-        <h3 className="font-display font-semibold mb-3">KYC Verification</h3>
-        <div className="flex items-center gap-3">
+      <div className="glass-card p-6 space-y-4">
+        <h3 className="font-display font-semibold flex items-center gap-2 mb-1">
+          <FileCheck className="w-4 h-4 text-primary" /> KYC Verification
+        </h3>
+        <div className="flex items-center gap-3 mb-4">
           <span className={kycBadge}>{kycStatus}</span>
           <p className="text-sm text-muted-foreground">
-            {kycStatus === "approved" ? "Your identity is verified." : "Submit your documents to increase limits."}
+            {kycStatus === "approved" ? "Your identity is verified." : kycStatus === "rejected" ? (kyc?.admin_note || "Your submission was rejected. Please resubmit.") : "Submit your documents to increase limits."}
           </p>
         </div>
+
+        {kycStatus !== "approved" && (
+          <div className="space-y-4 border-t border-border/10 pt-4">
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Document Type</label>
+              <select value={docType} onChange={(e) => setDocType(e.target.value)} className="w-full bg-secondary border border-border/30 rounded-lg px-3 py-2.5 text-sm text-foreground">
+                <option value="passport">Passport</option>
+                <option value="national_id">National ID</option>
+                <option value="drivers_license">Driver's License</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Document Photo</label>
+              <input ref={docInputRef} type="file" accept="image/*,.pdf" className="w-full text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold file:cursor-pointer text-muted-foreground" />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Selfie with Document</label>
+              <input ref={selfieInputRef} type="file" accept="image/*" className="w-full text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary/10 file:text-primary file:font-semibold file:cursor-pointer text-muted-foreground" />
+            </div>
+            <button onClick={handleKycUpload} disabled={uploading} className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-semibold text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+              {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</> : <><Upload className="w-4 h-4" /> Submit Documents</>}
+            </button>
+          </div>
+        )}
       </div>
     </motion.div>
   );
