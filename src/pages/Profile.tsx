@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Shield, Key, Smartphone, Upload, FileCheck, Loader2 } from "lucide-react";
+import { User, Mail, Shield, Key, Smartphone, Upload, FileCheck, Loader2, Camera } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,9 +13,12 @@ export default function Profile() {
   const [fullName, setFullName] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [sendingReset, setSendingReset] = useState(false);
   const [docType, setDocType] = useState("passport");
   const docInputRef = useRef<HTMLInputElement>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -39,6 +42,35 @@ export default function Profile() {
     if (profile?.full_name) setFullName(profile.full_name);
   }, [profile]);
 
+  const avatarUrl = profile?.avatar_url
+    ? supabase.storage.from("avatars").getPublicUrl(profile.avatar_url).data.publicUrl
+    : null;
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 2 * 1024 * 1024) { toast.error("Avatar must be under 2MB"); return; }
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
+
+    setAvatarUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from("avatars").upload(path, file);
+      if (uploadErr) throw uploadErr;
+
+      const { error: updateErr } = await supabase.from("profiles").update({ avatar_url: path }).eq("user_id", user.id);
+      if (updateErr) throw updateErr;
+
+      toast.success("Avatar updated");
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    } catch (err: any) {
+      toast.error(err.message || "Avatar upload failed");
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
@@ -47,6 +79,28 @@ export default function Profile() {
     if (error) toast.error(error.message);
     else {
       toast.success("Profile updated");
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!user?.email) return;
+    setSendingReset(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setSendingReset(false);
+    if (error) toast.error(error.message);
+    else toast.success("Password reset link sent to your email");
+  };
+
+  const handleToggle2FA = async () => {
+    if (!user) return;
+    const newValue = !profile?.two_factor_enabled;
+    const { error } = await supabase.from("profiles").update({ two_factor_enabled: newValue }).eq("user_id", user.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success(newValue ? "Two-factor authentication enabled" : "Two-factor authentication disabled");
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     }
   };
@@ -107,8 +161,20 @@ export default function Profile() {
 
       <div className="glass-card p-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center">
-            <User className="w-8 h-8 text-primary" />
+          <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+            <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center overflow-hidden">
+              {avatarUploading ? (
+                <Loader2 className="w-6 h-6 text-primary animate-spin" />
+              ) : avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-8 h-8 text-primary" />
+              )}
+            </div>
+            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Camera className="w-5 h-5 text-white" />
+            </div>
+            <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
           </div>
           <div>
             <p className="font-display font-bold text-lg">{profile?.full_name || "User"}</p>
@@ -145,9 +211,12 @@ export default function Profile() {
             <Key className="w-4 h-4 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">Password</p>
-              <p className="text-xs text-muted-foreground">Managed via email</p>
+              <p className="text-xs text-muted-foreground">Send a reset link to your email</p>
             </div>
           </div>
+          <button onClick={handlePasswordReset} disabled={sendingReset} className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-secondary text-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50">
+            {sendingReset ? "Sending..." : "Change Password"}
+          </button>
         </div>
         <div className="flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
@@ -157,6 +226,9 @@ export default function Profile() {
               <p className="text-xs text-muted-foreground">{profile?.two_factor_enabled ? "Enabled" : "Not enabled"}</p>
             </div>
           </div>
+          <button onClick={handleToggle2FA} className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${profile?.two_factor_enabled ? "bg-destructive/10 text-destructive hover:bg-destructive/20" : "bg-primary/10 text-primary hover:bg-primary/20"}`}>
+            {profile?.two_factor_enabled ? "Disable" : "Enable"}
+          </button>
         </div>
       </div>
 
