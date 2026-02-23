@@ -752,6 +752,36 @@ export type Database = {
         }
         Relationships: []
       }
+      system_alerts: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          reference_id: string | null
+          resolved: boolean
+          severity: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          reference_id?: string | null
+          resolved?: boolean
+          severity?: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          reference_id?: string | null
+          resolved?: boolean
+          severity?: string
+          type?: string
+        }
+        Relationships: []
+      }
       system_config: {
         Row: {
           email_verification_required: boolean
@@ -880,6 +910,44 @@ export type Database = {
           },
         ]
       }
+      trade_settlement_summary: {
+        Row: {
+          id: string
+          processed_at: string
+          total_investors: number
+          total_paid: number
+          total_principal: number
+          total_profit: number
+          trade_id: string
+        }
+        Insert: {
+          id?: string
+          processed_at?: string
+          total_investors?: number
+          total_paid?: number
+          total_principal?: number
+          total_profit?: number
+          trade_id: string
+        }
+        Update: {
+          id?: string
+          processed_at?: string
+          total_investors?: number
+          total_paid?: number
+          total_principal?: number
+          total_profit?: number
+          trade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_settlement_summary_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trades: {
         Row: {
           auto_close: boolean
@@ -894,8 +962,11 @@ export type Database = {
           min_investment: number
           risk_level: string
           roi_percent: number
+          settled_at: string | null
+          settlement_attempts: number
           settlement_date: string | null
           settlement_mode: string
+          settlement_processed: boolean
           slot_limit: number
           slots_filled: number
           status: string
@@ -915,8 +986,11 @@ export type Database = {
           min_investment: number
           risk_level?: string
           roi_percent: number
+          settled_at?: string | null
+          settlement_attempts?: number
           settlement_date?: string | null
           settlement_mode?: string
+          settlement_processed?: boolean
           slot_limit?: number
           slots_filled?: number
           status?: string
@@ -936,8 +1010,11 @@ export type Database = {
           min_investment?: number
           risk_level?: string
           roi_percent?: number
+          settled_at?: string | null
+          settlement_attempts?: number
           settlement_date?: string | null
           settlement_mode?: string
+          settlement_processed?: boolean
           slot_limit?: number
           slots_filled?: number
           status?: string
@@ -1068,6 +1145,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_transition_trades: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1075,6 +1153,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      settle_trade: { Args: { _trade_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
