@@ -1,214 +1,276 @@
 import { motion } from "framer-motion";
-import { Users, ShieldCheck, ArrowUpFromLine, ArrowDownToLine, DollarSign, Receipt } from "lucide-react";
-import MetricCard from "@/components/dashboard/MetricCard";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { Link } from "react-router-dom";
+import {
+  Users,
+  TrendingUp,
+  DollarSign,
+  Landmark,
+  Bot,
+  ShieldAlert,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  ArrowUpRight,
+  ArrowDownRight,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  ExternalLink,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+
+const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
+const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
+const fmt = (n: number) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// ─── KPI Card ─────────────────────────────────────────
+function KpiCard({ label, value, icon: Icon, trend, positive, badge }: {
+  label: string; value: string; icon: any; trend?: string; positive?: boolean;
+  badge?: { text: string; color: "success" | "destructive" | "warning" };
+}) {
+  return (
+    <div className="glass-card p-4 sm:p-5 flex flex-col gap-2 relative overflow-hidden">
+      <div className="absolute inset-0 rounded-xl pointer-events-none" style={{
+        boxShadow: "inset 0 0 40px hsl(var(--primary) / 0.04)",
+      }} />
+      <div className="flex items-center justify-between relative">
+        <span className="text-xs text-muted-foreground font-medium">{label}</span>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.1)" }}>
+          <Icon className="w-4 h-4 text-primary" />
+        </div>
+      </div>
+      <span className="text-xl sm:text-2xl font-display font-bold text-foreground relative">{value}</span>
+      <div className="flex items-center gap-2 relative">
+        {trend && (
+          <span className={`flex items-center gap-1 text-xs font-medium ${positive ? "text-success" : "text-destructive"}`}>
+            {positive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+            {trend}
+          </span>
+        )}
+        {badge && (
+          <span className={`status-badge-${badge.color}`}>
+            {badge.text}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Alert Row ────────────────────────────────────────
+function AlertRow({ severity, message, link }: { severity: "low" | "medium" | "high"; message: string; link: string }) {
+  const colors = {
+    low: { bg: "hsl(var(--primary) / 0.08)", border: "hsl(var(--primary) / 0.2)", text: "text-primary", icon: Info },
+    medium: { bg: "hsl(var(--warning) / 0.08)", border: "hsl(var(--warning) / 0.2)", text: "text-warning", icon: AlertTriangle },
+    high: { bg: "hsl(var(--destructive) / 0.08)", border: "hsl(var(--destructive) / 0.2)", text: "text-destructive", icon: ShieldAlert },
+  };
+  const c = colors[severity];
+  return (
+    <Link to={link} className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:brightness-110" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+      <c.icon className={`w-4 h-4 shrink-0 ${c.text}`} />
+      <span className="text-sm flex-1">{message}</span>
+      <span className={`text-[10px] font-bold uppercase tracking-wider ${c.text}`}>{severity}</span>
+      <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+    </Link>
+  );
+}
 
 export default function AdminDashboard() {
-  const queryClient = useQueryClient();
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const { data: profileCount } = useQuery({
-    queryKey: ["admin-profile-count"],
-    queryFn: async () => {
-      const { count } = await supabase.from("profiles").select("*", { count: "exact", head: true });
-      return count ?? 0;
-    },
-  });
+  // Auto-refresh every 30s
+  useEffect(() => {
+    const timer = setInterval(() => setRefreshKey((k) => k + 1), 30_000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const { data: kycPending } = useQuery({
-    queryKey: ["admin-kyc-pending"],
-    queryFn: async () => {
-      const { count } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
-      return count ?? 0;
-    },
-  });
+  const qOpts = { refetchInterval: 30_000 };
 
-  const { data: pendingDeposits } = useQuery({
-    queryKey: ["admin-pending-deposits"],
-    queryFn: async () => {
-      const { data } = await supabase.from("deposits").select("*").eq("status", "pending").order("created_at", { ascending: false });
-      return data ?? [];
-    },
-  });
+  // ── Section 1: System Health KPIs ──
+  const { data: totalUsers } = useQuery({ queryKey: ["ecc-users", refreshKey], queryFn: async () => {
+    const { count } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+    return count ?? 0;
+  }, ...qOpts });
 
-  const { data: pendingWithdrawals } = useQuery({
-    queryKey: ["admin-pending-withdrawals"],
-    queryFn: async () => {
-      const { data } = await supabase.from("withdrawals").select("*").eq("status", "pending").order("created_at", { ascending: false });
-      return data ?? [];
-    },
-  });
+  const { data: activeTrades } = useQuery({ queryKey: ["ecc-active-trades", refreshKey], queryFn: async () => {
+    const { count } = await supabase.from("trade_entries").select("*", { count: "exact", head: true }).eq("status", "active");
+    return count ?? 0;
+  }, ...qOpts });
 
-  const { data: totalDepositSum } = useQuery({
-    queryKey: ["admin-total-deposits"],
-    queryFn: async () => {
-      const { data } = await supabase.from("deposits").select("amount").eq("status", "approved");
-      return data?.reduce((s, d) => s + Number(d.amount), 0) ?? 0;
-    },
-  });
+  const { data: aum } = useQuery({ queryKey: ["ecc-aum", refreshKey], queryFn: async () => {
+    const { data } = await supabase.from("transactions").select("amount");
+    return data?.reduce((s, t) => s + Number(t.amount), 0) ?? 0;
+  }, ...qOpts });
 
-  const { data: totalWithdrawalSum } = useQuery({
-    queryKey: ["admin-total-withdrawals"],
-    queryFn: async () => {
-      const { data } = await supabase.from("withdrawals").select("amount").eq("status", "approved");
-      return data?.reduce((s, w) => s + Number(w.amount), 0) ?? 0;
-    },
-  });
+  const { data: platformProfit } = useQuery({ queryKey: ["ecc-profit", refreshKey], queryFn: async () => {
+    const { data } = await supabase.from("transactions").select("amount").in("type", ["profit", "trade_profit"]);
+    return data?.reduce((s, t) => s + Number(t.amount), 0) ?? 0;
+  }, ...qOpts });
 
-  const { data: recentTransactions } = useQuery({
-    queryKey: ["admin-recent-transactions"],
-    queryFn: async () => {
-      const { data } = await supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(5);
-      return data ?? [];
-    },
-  });
+  const { data: botStatus } = useQuery({ queryKey: ["ecc-bot", refreshKey], queryFn: async () => {
+    const { data } = await supabase.from("bot_global_settings").select("enabled").limit(1).maybeSingle();
+    return data?.enabled ?? false;
+  }, ...qOpts });
 
-  const pendingDepositTotal = pendingDeposits?.reduce((s, d) => s + Number(d.amount), 0) ?? 0;
-  const pendingWithdrawalTotal = pendingWithdrawals?.reduce((s, w) => s + Number(w.amount), 0) ?? 0;
+  // ── Section 2: Financial Flow ──
+  const { data: pendingDepositCount } = useQuery({ queryKey: ["ecc-pend-dep", refreshKey], queryFn: async () => {
+    const { count } = await supabase.from("deposits").select("*", { count: "exact", head: true }).eq("status", "pending");
+    return count ?? 0;
+  }, ...qOpts });
 
-  const handleDepositAction = async (id: string, action: "approved" | "rejected") => {
-    const { error } = await supabase.from("deposits").update({ status: action }).eq("id", id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success(`Deposit ${action}`);
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-deposits"] });
-    }
-  };
+  const { data: pendingWithdrawalAmt } = useQuery({ queryKey: ["ecc-pend-wd", refreshKey], queryFn: async () => {
+    const { data } = await supabase.from("withdrawals").select("amount").eq("status", "pending");
+    return data?.reduce((s, w) => s + Number(w.amount), 0) ?? 0;
+  }, ...qOpts });
 
-  const handleWithdrawalAction = async (id: string, action: "approved" | "rejected") => {
-    const { error } = await supabase.from("withdrawals").update({ status: action }).eq("id", id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success(`Withdrawal ${action}`);
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-withdrawals"] });
-    }
-  };
+  const { data: todayDeposits } = useQuery({ queryKey: ["ecc-today-dep", refreshKey], queryFn: async () => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const { data } = await supabase.from("deposits").select("amount").eq("status", "approved").gte("created_at", today.toISOString());
+    return data?.reduce((s, d) => s + Number(d.amount), 0) ?? 0;
+  }, ...qOpts });
 
-  const fmt = (n: number) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2 });
+  const { data: todayWithdrawals } = useQuery({ queryKey: ["ecc-today-wd", refreshKey], queryFn: async () => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const { data } = await supabase.from("withdrawals").select("amount").eq("status", "approved").gte("created_at", today.toISOString());
+    return data?.reduce((s, w) => s + Number(w.amount), 0) ?? 0;
+  }, ...qOpts });
+
+  const netFlow = (todayDeposits ?? 0) - (todayWithdrawals ?? 0);
+
+  // ── Section 3: Alerts ──
+  const { data: kycPending } = useQuery({ queryKey: ["ecc-kyc", refreshKey], queryFn: async () => {
+    const { count } = await supabase.from("kyc").select("*", { count: "exact", head: true }).eq("status", "pending");
+    return count ?? 0;
+  }, ...qOpts });
+
+  const alerts: { severity: "low" | "medium" | "high"; message: string; link: string }[] = [];
+  if ((pendingWithdrawalAmt ?? 0) > 10000) alerts.push({ severity: "high", message: `${fmt(pendingWithdrawalAmt ?? 0)} in pending withdrawals`, link: "/admin/withdrawals" });
+  if ((pendingDepositCount ?? 0) > 10) alerts.push({ severity: "medium", message: `${pendingDepositCount} deposits awaiting approval`, link: "/admin/deposits" });
+  if (!botStatus) alerts.push({ severity: "medium", message: "Trading bot is currently paused", link: "/admin/bot" });
+  if ((kycPending ?? 0) > 5) alerts.push({ severity: "low", message: `${kycPending} KYC submissions pending review`, link: "/admin/kyc" });
+  if (netFlow < -5000) alerts.push({ severity: "high", message: `Negative net flow today: ${fmt(netFlow)}`, link: "/admin/withdrawals" });
+
+  // ── Section 4: Recent Activity ──
+  const { data: recentActivity } = useQuery({ queryKey: ["ecc-activity", refreshKey], queryFn: async () => {
+    const { data } = await supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(5);
+    return data ?? [];
+  }, ...qOpts });
+
+  // Withdrawal risk
+  const wdRisk = (pendingWithdrawalAmt ?? 0) > 20000 ? "Critical" : (pendingWithdrawalAmt ?? 0) > 5000 ? "Elevated" : "Normal";
+  const wdRiskColor = wdRisk === "Critical" ? "destructive" : wdRisk === "Elevated" ? "warning" : "success";
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <h1 className="font-display font-bold text-xl sm:text-2xl">Admin Dashboard</h1>
+    <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
+      {/* Header */}
+      <motion.div variants={item} className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display font-bold text-xl sm:text-2xl">Executive Command Center</h1>
+          <p className="text-xs text-muted-foreground mt-1">Real-time platform intelligence · Auto-refreshes every 30s</p>
+        </div>
+        <button onClick={() => setRefreshKey((k) => k + 1)} className="p-2 rounded-lg hover:bg-secondary/50 transition-colors" title="Refresh now">
+          <RefreshCw className="w-4 h-4 text-muted-foreground" />
+        </button>
+      </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <MetricCard label="Total Users" value={String(profileCount ?? 0)} icon={Users} />
-        <MetricCard label="KYC Pending" value={String(kycPending ?? 0)} icon={ShieldCheck} />
-        <MetricCard label="Deposit Queue" value={String(pendingDeposits?.length ?? 0)} icon={ArrowDownToLine} />
-        <MetricCard label="Pending Withdrawals" value={fmt(pendingWithdrawalTotal)} icon={ArrowUpFromLine} />
-        <MetricCard label="Total Deposits" value={fmt(totalDepositSum ?? 0)} icon={DollarSign} />
-        <MetricCard label="Total Withdrawals" value={fmt(totalWithdrawalSum ?? 0)} icon={Receipt} />
-      </div>
+      {/* ── 1. SYSTEM HEALTH KPIs ── */}
+      <motion.div variants={item}>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">System Health</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <KpiCard label="Total Users" value={String(totalUsers ?? 0)} icon={Users} trend={totalUsers ? `+${totalUsers}` : undefined} positive />
+          <KpiCard label="Active Trades" value={String(activeTrades ?? 0)} icon={TrendingUp} />
+          <KpiCard label="Assets Under Management" value={fmt(aum ?? 0)} icon={Landmark} />
+          <KpiCard label="Platform Profit" value={fmt(platformProfit ?? 0)} icon={DollarSign} trend={platformProfit && platformProfit > 0 ? `+${((platformProfit / Math.max(aum ?? 1, 1)) * 100).toFixed(1)}%` : undefined} positive={(platformProfit ?? 0) > 0} />
+          <KpiCard label="Bot Status" value={botStatus ? "Running" : "Paused"} icon={Bot} badge={{ text: botStatus ? "Online" : "Offline", color: botStatus ? "success" : "destructive" }} />
+          <KpiCard label="Withdrawal Risk" value={wdRisk} icon={ShieldAlert} badge={{ text: wdRisk, color: wdRiskColor as any }} />
+        </div>
+      </motion.div>
 
-      {/* Deposit Queue */}
-      <div>
-        <h2 className="font-display font-semibold text-lg mb-3">Manual Deposit Queue</h2>
-        <div className="glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/30">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">User</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Amount</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">TX Hash</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Time</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingDeposits && pendingDeposits.length > 0 ? pendingDeposits.map((d) => (
-                  <tr key={d.id} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs">{d.user_id.slice(0, 8)}...</td>
-                    <td className="px-4 py-3">${Number(d.amount).toLocaleString()}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{d.tx_hash?.slice(0, 12) ?? "—"}...</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDistanceToNow(new Date(d.created_at), { addSuffix: true })}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button onClick={() => handleDepositAction(d.id, "approved")} className="px-3 py-1 rounded text-xs font-medium bg-success/15 text-success hover:bg-success/25 transition-colors">Approve</button>
-                        <button onClick={() => handleDepositAction(d.id, "rejected")} className="px-3 py-1 rounded text-xs font-medium bg-destructive/15 text-destructive hover:bg-destructive/25 transition-colors">Reject</button>
-                      </div>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">No pending deposits.</td></tr>
-                )}
-              </tbody>
-            </table>
+      {/* ── 2. FINANCIAL FLOW ── */}
+      <motion.div variants={item}>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Financial Flow Snapshot</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="glass-card p-4 text-center">
+            <ArrowDownToLine className="w-4 h-4 mx-auto text-primary mb-1" />
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Pending Deposits</p>
+            <p className="text-lg font-display font-bold">{pendingDepositCount ?? 0}</p>
+          </div>
+          <div className="glass-card p-4 text-center">
+            <ArrowUpFromLine className="w-4 h-4 mx-auto text-warning mb-1" />
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Pending Withdrawals</p>
+            <p className="text-lg font-display font-bold">{fmt(pendingWithdrawalAmt ?? 0)}</p>
+          </div>
+          <div className="glass-card p-4 text-center">
+            <ArrowDownToLine className="w-4 h-4 mx-auto text-success mb-1" />
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Today's Deposits</p>
+            <p className="text-lg font-display font-bold">{fmt(todayDeposits ?? 0)}</p>
+          </div>
+          <div className="glass-card p-4 text-center">
+            <ArrowUpFromLine className="w-4 h-4 mx-auto text-destructive mb-1" />
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Today's Withdrawals</p>
+            <p className="text-lg font-display font-bold">{fmt(todayWithdrawals ?? 0)}</p>
+          </div>
+          <div className={`glass-card p-4 text-center col-span-2 sm:col-span-1`}>
+            <DollarSign className={`w-4 h-4 mx-auto mb-1 ${netFlow >= 0 ? "text-success" : "text-destructive"}`} />
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Net Flow Today</p>
+            <p className={`text-lg font-display font-bold ${netFlow >= 0 ? "text-success" : "text-destructive"}`}>{fmt(netFlow)}</p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Withdrawal Queue */}
-      <div>
-        <h2 className="font-display font-semibold text-lg mb-3">Withdrawal Queue</h2>
-        <div className="glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/30">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">User</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Amount</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Currency</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Wallet</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingWithdrawals && pendingWithdrawals.length > 0 ? pendingWithdrawals.map((w) => (
-                  <tr key={w.id} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs">{w.user_id.slice(0, 8)}...</td>
-                    <td className="px-4 py-3">${Number(w.amount).toLocaleString()}</td>
-                    <td className="px-4 py-3">{w.currency}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{w.wallet_address.slice(0, 12)}...</td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button onClick={() => handleWithdrawalAction(w.id, "approved")} className="px-3 py-1 rounded text-xs font-medium bg-success/15 text-success hover:bg-success/25 transition-colors">Approve</button>
-                        <button onClick={() => handleWithdrawalAction(w.id, "rejected")} className="px-3 py-1 rounded text-xs font-medium bg-destructive/15 text-destructive hover:bg-destructive/25 transition-colors">Reject</button>
-                      </div>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">No pending withdrawals.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+      {/* ── 3. ALERTS ── */}
+      <motion.div variants={item}>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Alerts</h2>
+        <div className="space-y-2">
+          {alerts.length === 0 ? (
+            <div className="glass-card p-5 flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-success" />
+              <span className="text-sm font-medium text-success">System Operating Normally</span>
+            </div>
+          ) : (
+            alerts.map((a, i) => <AlertRow key={i} {...a} />)
+          )}
         </div>
-      </div>
+      </motion.div>
 
-      {/* Recent Transactions */}
-      <div>
-        <h2 className="font-display font-semibold text-lg mb-3">Recent Transactions</h2>
+      {/* ── 4. RECENT ACTIVITY FEED ── */}
+      <motion.div variants={item}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recent Activity</h2>
+          <Link to="/admin/transactions" className="text-xs text-primary hover:underline flex items-center gap-1">
+            View Full Log <ExternalLink className="w-3 h-3" />
+          </Link>
+        </div>
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/30">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">User</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Type</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Amount</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Description</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Time</th>
+                  <th className="text-left px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Event</th>
+                  <th className="text-left px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">User</th>
+                  <th className="text-left px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Amount</th>
+                  <th className="text-left px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Time</th>
                 </tr>
               </thead>
               <tbody>
-                {recentTransactions && recentTransactions.length > 0 ? recentTransactions.map((t) => (
+                {recentActivity && recentActivity.length > 0 ? recentActivity.map((t) => (
                   <tr key={t.id} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs">{t.user_id.slice(0, 8)}...</td>
                     <td className="px-4 py-3 capitalize">{t.type.replace(/_/g, " ")}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{t.user_id.slice(0, 8)}…</td>
                     <td className={`px-4 py-3 font-medium ${Number(t.amount) >= 0 ? "text-success" : "text-destructive"}`}>{fmt(Number(t.amount))}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{t.description ?? "—"}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">{formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}</td>
                   </tr>
                 )) : (
-                  <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">No transactions yet.</td></tr>
+                  <tr><td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">No recent activity.</td></tr>
                 )}
               </tbody>
             </table>
           </div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
