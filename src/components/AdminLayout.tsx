@@ -7,6 +7,7 @@ import {
   Bot,
   ArrowDownToLine,
   ArrowUpFromLine,
+  DollarSign,
   Users,
   History,
   Gift,
