@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Search, Pencil, Trash2, DollarSign, X } from "lucide-react";
+import { Search, Pencil, Trash2, DollarSign, X, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { formatDistanceToNow } from "date-fns";
 
 type Profile = {
   id: string;
@@ -25,9 +26,12 @@ type Profile = {
   created_at: string;
 };
 
+const PAGE_SIZE = 15;
+
 export default function AdminUsers() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
 
   // Edit profile dialog
   const [editUser, setEditUser] = useState<Profile | null>(null);
@@ -46,6 +50,9 @@ export default function AdminUsers() {
   const [deleteUser, setDeleteUser] = useState<Profile | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // View user dialog
+  const [viewUser, setViewUser] = useState<Profile | null>(null);
+
   const { data: profiles } = useQuery({
     queryKey: ["admin-profiles"],
     queryFn: async () => {
@@ -57,6 +64,23 @@ export default function AdminUsers() {
     },
   });
 
+  // Transaction history for viewed user
+  const { data: userTxns } = useQuery({
+    queryKey: ["admin-user-txns", viewUser?.user_id],
+    enabled: !!viewUser,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", viewUser!.user_id)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      return data ?? [];
+    },
+  });
+
+  const userBalance = userTxns?.reduce((sum, tx) => sum + Number(tx.amount), 0) ?? 0;
+
   const filtered = profiles?.filter((p) => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
@@ -66,6 +90,16 @@ export default function AdminUsers() {
       (p.referral_code ?? "").toLowerCase().includes(q)
     );
   });
+
+  const totalPages = Math.max(1, Math.ceil((filtered?.length ?? 0) / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages - 1);
+  const paginated = filtered?.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+
+  // Reset page when search changes
+  const handleSearch = (val: string) => {
+    setSearch(val);
+    setPage(0);
+  };
 
   const toggleFreeze = async (userId: string, current: boolean) => {
     const { error } = await supabase
@@ -79,7 +113,6 @@ export default function AdminUsers() {
     }
   };
 
-  // Edit profile
   const openEdit = (p: Profile) => {
     setEditUser(p);
     setEditName(p.full_name ?? "");
@@ -102,7 +135,6 @@ export default function AdminUsers() {
     }
   };
 
-  // Balance adjustment
   const openBalance = (p: Profile) => {
     setBalanceUser(p);
     setBalanceAmount("");
@@ -133,11 +165,9 @@ export default function AdminUsers() {
     }
   };
 
-  // Delete user profile
   const confirmDelete = async () => {
     if (!deleteUser) return;
     setDeleting(true);
-    // Delete related records first, then profile
     const userId = deleteUser.user_id;
     await supabase.from("notifications").delete().eq("user_id", userId);
     await supabase.from("bot_activity").delete().eq("user_id", userId);
@@ -160,6 +190,8 @@ export default function AdminUsers() {
     }
   };
 
+  const fmt = (n: number) => (n >= 0 ? "+" : "") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2 });
+
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -169,11 +201,11 @@ export default function AdminUsers() {
           <Input
             placeholder="Search by name, ID, or referral code…"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="pl-9"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            <button onClick={() => handleSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="h-4 w-4" />
             </button>
           )}
@@ -193,7 +225,7 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody>
-              {filtered?.map((p) => (
+              {paginated?.map((p) => (
                 <tr key={p.id} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
                   <td className="px-4 py-3 font-medium">{p.full_name || "—"}</td>
                   <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{p.user_id.slice(0, 12)}…</td>
@@ -210,6 +242,9 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
+                      <button onClick={() => setViewUser(p)} className="p-1 rounded hover:bg-secondary/50 text-muted-foreground hover:text-foreground" title="View details">
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
                       <button
                         onClick={() => toggleFreeze(p.user_id, p.is_frozen)}
                         className={`text-xs font-medium hover:underline ${p.is_frozen ? "text-success" : "text-destructive"}`}
@@ -229,13 +264,123 @@ export default function AdminUsers() {
                   </td>
                 </tr>
               ))}
-              {(!filtered || filtered.length === 0) && (
+              {(!paginated || paginated.length === 0) && (
                 <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No users found.</td></tr>
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border/30">
+            <span className="text-xs text-muted-foreground">
+              Showing {currentPage * PAGE_SIZE + 1}–{Math.min((currentPage + 1) * PAGE_SIZE, filtered?.length ?? 0)} of {filtered?.length ?? 0}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-8 w-8" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {Array.from({ length: totalPages }, (_, i) => i)
+                .filter(i => i === 0 || i === totalPages - 1 || Math.abs(i - currentPage) <= 1)
+                .reduce<(number | "ellipsis")[]>((acc, i, idx, arr) => {
+                  if (idx > 0 && arr[idx - 1] !== i - 1) acc.push("ellipsis");
+                  acc.push(i);
+                  return acc;
+                }, [])
+                .map((item, idx) =>
+                  item === "ellipsis" ? (
+                    <span key={`e-${idx}`} className="px-1 text-xs text-muted-foreground">…</span>
+                  ) : (
+                    <Button
+                      key={item}
+                      variant={item === currentPage ? "default" : "ghost"}
+                      size="icon"
+                      className="h-8 w-8 text-xs"
+                      onClick={() => setPage(item)}
+                    >
+                      {item + 1}
+                    </Button>
+                  )
+                )}
+              <Button variant="ghost" size="icon" className="h-8 w-8" disabled={currentPage >= totalPages - 1} onClick={() => setPage(currentPage + 1)}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* View User Detail Dialog */}
+      <Dialog open={!!viewUser} onOpenChange={(o) => !o && setViewUser(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>User Details</DialogTitle>
+            <DialogDescription>{viewUser?.full_name || "Unknown"} — <span className="font-mono text-xs">{viewUser?.user_id}</span></DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 overflow-y-auto flex-1 pr-1">
+            {/* Summary cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="rounded-lg bg-secondary/50 p-3 text-center">
+                <p className="text-xs text-muted-foreground">Balance</p>
+                <p className={`text-lg font-bold ${userBalance >= 0 ? "text-success" : "text-destructive"}`}>
+                  ${Math.abs(userBalance).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="rounded-lg bg-secondary/50 p-3 text-center">
+                <p className="text-xs text-muted-foreground">KYC</p>
+                <p className="text-sm font-semibold capitalize">{viewUser?.kyc_status}</p>
+              </div>
+              <div className="rounded-lg bg-secondary/50 p-3 text-center">
+                <p className="text-xs text-muted-foreground">Status</p>
+                <p className={`text-sm font-semibold ${viewUser?.is_frozen ? "text-destructive" : "text-success"}`}>
+                  {viewUser?.is_frozen ? "Frozen" : "Active"}
+                </p>
+              </div>
+              <div className="rounded-lg bg-secondary/50 p-3 text-center">
+                <p className="text-xs text-muted-foreground">Referral</p>
+                <p className="text-sm font-mono">{viewUser?.referral_code ?? "—"}</p>
+              </div>
+            </div>
+
+            {/* Transaction history */}
+            <div>
+              <h3 className="text-sm font-semibold mb-2">Transaction History</h3>
+              <div className="rounded-lg border border-border/30 overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border/30 bg-secondary/30">
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Type</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Amount</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Description</th>
+                      <th className="text-left px-3 py-2 font-medium text-muted-foreground">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {userTxns && userTxns.length > 0 ? userTxns.map((tx) => (
+                      <tr key={tx.id} className="border-b border-border/10">
+                        <td className="px-3 py-2">
+                          <span className="px-1.5 py-0.5 rounded bg-secondary text-[10px] font-medium">{tx.type.replace(/_/g, " ")}</span>
+                        </td>
+                        <td className={`px-3 py-2 font-semibold ${Number(tx.amount) >= 0 ? "text-success" : "text-destructive"}`}>
+                          {fmt(Number(tx.amount))}
+                        </td>
+                        <td className="px-3 py-2 text-muted-foreground max-w-[160px] truncate">{tx.description ?? "—"}</td>
+                        <td className="px-3 py-2 text-muted-foreground">{formatDistanceToNow(new Date(tx.created_at), { addSuffix: true })}</td>
+                      </tr>
+                    )) : (
+                      <tr><td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">No transactions.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewUser(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Profile Dialog */}
       <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
