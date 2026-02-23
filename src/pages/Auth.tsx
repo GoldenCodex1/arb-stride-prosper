@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import TwoFactorChallenge from "@/components/TwoFactorChallenge";
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
@@ -13,6 +14,7 @@ export default function Auth() {
   const [referralCode, setReferralCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [needs2FA, setNeeds2FA] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -49,11 +51,25 @@ export default function Auth() {
           description: "Please check your email to verify your account.",
         });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
+
+        // Check if user has 2FA enabled
+        if (signInData.user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("two_factor_enabled")
+            .eq("user_id", signInData.user.id)
+            .maybeSingle();
+
+          if (profile?.two_factor_enabled) {
+            setNeeds2FA(true);
+            return;
+          }
+        }
         navigate("/dashboard");
       }
     } catch (error: any) {
@@ -91,6 +107,17 @@ export default function Auth() {
           </p>
         </div>
 
+        {needs2FA ? (
+          <div className="glass-card p-6">
+            <TwoFactorChallenge
+              onVerified={() => navigate("/dashboard")}
+              onCancel={async () => {
+                await supabase.auth.signOut();
+                setNeeds2FA(false);
+              }}
+            />
+          </div>
+        ) : (
         <div className="glass-card p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "forgot" ? (
@@ -243,6 +270,7 @@ export default function Auth() {
             )}
           </p>
         </div>
+        )}
       </motion.div>
     </div>
   );
