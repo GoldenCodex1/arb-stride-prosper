@@ -22,6 +22,7 @@ import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminTrades from "@/pages/admin/AdminTrades";
 import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminUserDetail from "@/pages/admin/AdminUserDetail";
 import AdminKyc from "@/pages/admin/AdminKyc";
 import AdminHomepageControl from "@/pages/admin/AdminHomepageControl";
 import AdminDeposits from "@/pages/admin/AdminDeposits";
