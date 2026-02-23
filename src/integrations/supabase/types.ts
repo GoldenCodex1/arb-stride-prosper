@@ -695,6 +695,33 @@ export type Database = {
         }
         Relationships: []
       }
+      risk_scores: {
+        Row: {
+          created_at: string
+          id: string
+          last_calculated_at: string
+          risk_flags: Json | null
+          score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_calculated_at?: string
+          risk_flags?: Json | null
+          score?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_calculated_at?: string
+          risk_flags?: Json | null
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       security_config: {
         Row: {
           admin_ip_whitelist: string
