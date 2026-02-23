@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Save, Plus, Trash2, GripVertical, Eye, EyeOff, BarChart3, HelpCircle, Type, Search } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 
 /* ─── types ─── */
 interface Stat {
@@ -138,55 +138,49 @@ export default function AdminHomepageControl() {
       <h2 className="font-display font-bold text-xl sm:text-2xl">Homepage Control</h2>
 
       {/* ── 1. LIVE PLATFORM STATS ── */}
-      <Card className="glass-card border-none">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg font-display">
-            <BarChart3 className="w-5 h-5 text-primary" /> Live Platform Stats
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {stats.map((stat) => (
-              <div key={stat.id} className="glass-card p-4 space-y-3 rounded-xl">
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                <Input
-                  value={stat.value}
-                  disabled={stat.auto_calculate}
-                  onChange={(e) => setStats((s) => s.map((x) => x.id === stat.id ? { ...x, value: e.target.value } : x))}
-                />
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Switch
-                      checked={stat.auto_calculate}
-                      onCheckedChange={(v) => setStats((s) => s.map((x) => x.id === stat.id ? { ...x, auto_calculate: v } : x))}
-                    />
-                    Auto-calculate
-                  </label>
-                  <Button size="sm" onClick={() => saveStat(stat)} disabled={saving === stat.id}>
-                    <Save className="w-3.5 h-3.5 mr-1" /> Save
-                  </Button>
-                </div>
+      <div className="glass-card p-5 sm:p-6 space-y-4">
+        <h3 className="flex items-center gap-2 text-lg font-display font-semibold">
+          <BarChart3 className="w-5 h-5 text-primary" /> Live Platform Stats
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {stats.map((stat) => (
+            <div key={stat.id} className="rounded-xl border border-border/40 bg-card/50 p-4 space-y-3">
+              <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+              <Input
+                value={stat.value}
+                disabled={stat.auto_calculate}
+                onChange={(e) => setStats((s) => s.map((x) => x.id === stat.id ? { ...x, value: e.target.value } : x))}
+              />
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Switch
+                    checked={stat.auto_calculate}
+                    onCheckedChange={(v) => setStats((s) => s.map((x) => x.id === stat.id ? { ...x, auto_calculate: v } : x))}
+                  />
+                  Auto-calculate
+                </label>
+                <Button size="sm" onClick={() => saveStat(stat)} disabled={saving === stat.id}>
+                  <Save className="w-3.5 h-3.5 mr-1" /> Save
+                </Button>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* ── 2. FAQ MANAGER ── */}
-      <Card className="glass-card border-none">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-lg font-display">
-              <HelpCircle className="w-5 h-5 text-primary" /> FAQ Manager
-            </CardTitle>
-            <Button size="sm" variant="outline" onClick={addFaq}>
-              <Plus className="w-3.5 h-3.5 mr-1" /> Add FAQ
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="glass-card p-5 sm:p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="flex items-center gap-2 text-lg font-display font-semibold">
+            <HelpCircle className="w-5 h-5 text-primary" /> FAQ Manager
+          </h3>
+          <Button size="sm" variant="outline" onClick={addFaq} className="relative z-10">
+            <Plus className="w-3.5 h-3.5 mr-1" /> Add FAQ
+          </Button>
+        </div>
+        <div className="space-y-4">
           {faqs.map((faq) => (
-            <div key={faq.id} className="glass-card p-4 space-y-3 rounded-xl">
+            <div key={faq.id} className="rounded-xl border border-border/40 bg-card/50 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
                 <Input
@@ -232,18 +226,16 @@ export default function AdminHomepageControl() {
             </div>
           ))}
           {faqs.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No FAQs yet. Click "Add FAQ" to create one.</p>}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* ── 3. HERO CONTENT EDITOR ── */}
       {hero && (
-        <Card className="glass-card border-none">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg font-display">
-              <Type className="w-5 h-5 text-primary" /> Hero Content
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="glass-card p-5 sm:p-6 space-y-4">
+          <h3 className="flex items-center gap-2 text-lg font-display font-semibold">
+            <Type className="w-5 h-5 text-primary" /> Hero Content
+          </h3>
+          <div className="space-y-4">
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Headline</Label>
               <Input value={hero.headline} onChange={(e) => setHero({ ...hero, headline: e.target.value })} />
@@ -267,19 +259,17 @@ export default function AdminHomepageControl() {
                 <Save className="w-4 h-4 mr-2" /> Save Hero
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* ── 4. SEO META CONTROL ── */}
       {seo && (
-        <Card className="glass-card border-none">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg font-display">
-              <Search className="w-5 h-5 text-primary" /> SEO Meta Control
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="glass-card p-5 sm:p-6 space-y-4">
+          <h3 className="flex items-center gap-2 text-lg font-display font-semibold">
+            <Search className="w-5 h-5 text-primary" /> SEO Meta Control
+          </h3>
+          <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs text-muted-foreground mb-1 block">Meta Title</Label>
@@ -313,8 +303,8 @@ export default function AdminHomepageControl() {
                 <Save className="w-4 h-4 mr-2" /> Save SEO
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </motion.div>
   );
