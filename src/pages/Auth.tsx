@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TwoFactorChallenge from "@/components/TwoFactorChallenge";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
@@ -17,6 +18,14 @@ export default function Auth() {
   const [needs2FA, setNeeds2FA] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Redirect to dashboard once auth context picks up the user
+  useEffect(() => {
+    if (user && !needs2FA) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, needs2FA, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
