@@ -420,23 +420,89 @@ export type Database = {
         Row: {
           answer: string
           created_at: string
+          display_order: number
           id: string
+          is_visible: boolean
           question: string
-          sort_order: number
+          updated_at: string
         }
         Insert: {
           answer: string
           created_at?: string
+          display_order?: number
           id?: string
+          is_visible?: boolean
           question: string
-          sort_order?: number
+          updated_at?: string
         }
         Update: {
           answer?: string
           created_at?: string
+          display_order?: number
           id?: string
+          is_visible?: boolean
           question?: string
-          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      homepage_hero: {
+        Row: {
+          headline: string
+          id: string
+          primary_cta_text: string
+          secondary_cta_text: string
+          subheadline: string
+          updated_at: string
+        }
+        Insert: {
+          headline?: string
+          id?: string
+          primary_cta_text?: string
+          secondary_cta_text?: string
+          subheadline?: string
+          updated_at?: string
+        }
+        Update: {
+          headline?: string
+          id?: string
+          primary_cta_text?: string
+          secondary_cta_text?: string
+          subheadline?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      homepage_seo: {
+        Row: {
+          id: string
+          keywords: string
+          meta_description: string
+          meta_title: string
+          og_description: string
+          og_image: string
+          og_title: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          keywords?: string
+          meta_description?: string
+          meta_title?: string
+          og_description?: string
+          og_image?: string
+          og_title?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          keywords?: string
+          meta_description?: string
+          meta_title?: string
+          og_description?: string
+          og_image?: string
+          og_title?: string
+          updated_at?: string
         }
         Relationships: []
       }

@@ -1,9 +1,33 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp, Bot, BarChart3, Wallet } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface HeroData {
+  headline: string;
+  subheadline: string;
+  primary_cta_text: string;
+  secondary_cta_text: string;
+}
+
+const defaults: HeroData = {
+  headline: "Smart Arbitrage.",
+  subheadline: "ArbAI combines AI-assisted arbitrage strategies with automated execution to generate consistent ROI.",
+  primary_cta_text: "Get Started",
+  secondary_cta_text: "Login",
+};
 
 export default function HeroSection() {
+  const [hero, setHero] = useState<HeroData>(defaults);
+
+  useEffect(() => {
+    supabase.from("homepage_hero").select("*").limit(1).single().then(({ data }) => {
+      if (data) setHero(data);
+    });
+  }, []);
+
   return (
     <section className="relative pt-28 pb-20 md:pt-36 md:pb-28 overflow-hidden">
       {/* Background glow */}
@@ -15,18 +39,24 @@ export default function HeroSection() {
         {/* Left */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-            Smart Arbitrage.{" "}
-            <span className="gradient-text">Automated Growth.</span>
+            {hero.headline.includes(".") ? (
+              <>
+                {hero.headline.split(".")[0]}.{" "}
+                <span className="gradient-text">{hero.headline.split(".").slice(1).join(".").trim()}</span>
+              </>
+            ) : (
+              <span className="gradient-text">{hero.headline}</span>
+            )}
           </h1>
           <p className="text-muted-foreground text-lg sm:text-xl leading-relaxed mb-8 max-w-lg">
-            ArbAI combines AI-assisted arbitrage strategies with automated execution to generate consistent ROI.
+            {hero.subheadline}
           </p>
           <div className="flex flex-wrap gap-4">
             <Button size="lg" asChild className="gap-2 rounded-2xl px-8">
-              <Link to="/auth">Get Started <ArrowRight className="w-4 h-4" /></Link>
+              <Link to="/auth">{hero.primary_cta_text} <ArrowRight className="w-4 h-4" /></Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="rounded-2xl px-8">
-              <Link to="/auth">Login</Link>
+              <Link to="/auth">{hero.secondary_cta_text}</Link>
             </Button>
           </div>
         </motion.div>
