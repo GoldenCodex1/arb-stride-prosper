@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Shield, Loader2, Copy, Check } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import QRCode from "qrcode";
 
 interface TwoFactorSetupProps {
   isEnabled: boolean;
@@ -17,6 +17,7 @@ export default function TwoFactorSetup({ isEnabled, onComplete }: TwoFactorSetup
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState("");
 
   const handleSetup = async () => {
     setLoading(true);
@@ -28,6 +29,8 @@ export default function TwoFactorSetup({ isEnabled, onComplete }: TwoFactorSetup
       if (data.error) throw new Error(data.error);
       setUri(data.uri);
       setSecret(data.secret);
+      const dataUrl = await QRCode.toDataURL(data.uri, { width: 200, margin: 2 });
+      setQrDataUrl(dataUrl);
       setStep("qr");
     } catch (err: any) {
       toast.error(err.message || "Failed to setup 2FA");
@@ -86,7 +89,7 @@ export default function TwoFactorSetup({ isEnabled, onComplete }: TwoFactorSetup
           Scan this QR code with Google Authenticator or any TOTP app:
         </p>
         <div className="flex justify-center p-4 bg-white rounded-lg w-fit mx-auto">
-          <QRCodeSVG value={uri} size={180} />
+          <img src={qrDataUrl} alt="2FA QR Code" width={180} height={180} />
         </div>
         <div className="flex items-center gap-2">
           <code className="flex-1 text-xs bg-secondary p-2 rounded font-mono break-all">
