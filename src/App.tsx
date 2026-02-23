@@ -29,6 +29,7 @@ import AdminDeposits from "@/pages/admin/AdminDeposits";
 import AdminWithdrawals from "@/pages/admin/AdminWithdrawals";
 import AdminWallets from "@/pages/admin/AdminWallets";
 import AdminTransactions from "@/pages/admin/AdminTransactions";
+import AdminFinance from "@/pages/admin/AdminFinance";
 import AdminReferrals from "@/pages/admin/AdminReferrals";
 import AdminBotSettings from "@/pages/admin/AdminBotSettings";
 import AdminSecurityLogs from "@/pages/admin/AdminSecurityLogs";
