@@ -110,6 +110,183 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_alert_settings: {
+        Row: {
+          api_failure_alert: boolean
+          consecutive_loss_limit: number
+          daily_loss_cap: number
+          drawdown_threshold_percent: number
+          exposure_spike_percent: number
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          api_failure_alert?: boolean
+          consecutive_loss_limit?: number
+          daily_loss_cap?: number
+          drawdown_threshold_percent?: number
+          exposure_spike_percent?: number
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          api_failure_alert?: boolean
+          consecutive_loss_limit?: number
+          daily_loss_cap?: number
+          drawdown_threshold_percent?: number
+          exposure_spike_percent?: number
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      bot_capital_rules: {
+        Row: {
+          auto_rebalance: boolean
+          capital_locked_per_trade_percent: number
+          id: string
+          liquidity_buffer_percent: number
+          updated_at: string
+          updated_by: string | null
+          wallet_allocation_percent: number
+        }
+        Insert: {
+          auto_rebalance?: boolean
+          capital_locked_per_trade_percent?: number
+          id?: string
+          liquidity_buffer_percent?: number
+          updated_at?: string
+          updated_by?: string | null
+          wallet_allocation_percent?: number
+        }
+        Update: {
+          auto_rebalance?: boolean
+          capital_locked_per_trade_percent?: number
+          id?: string
+          liquidity_buffer_percent?: number
+          updated_at?: string
+          updated_by?: string | null
+          wallet_allocation_percent?: number
+        }
+        Relationships: []
+      }
+      bot_global_settings: {
+        Row: {
+          enabled: boolean
+          global_risk_mode: string
+          id: string
+          max_concurrent_trades: number
+          max_platform_exposure: number
+          trading_window_end: string | null
+          trading_window_start: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          enabled?: boolean
+          global_risk_mode?: string
+          id?: string
+          max_concurrent_trades?: number
+          max_platform_exposure?: number
+          trading_window_end?: string | null
+          trading_window_start?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          enabled?: boolean
+          global_risk_mode?: string
+          id?: string
+          max_concurrent_trades?: number
+          max_platform_exposure?: number
+          trading_window_end?: string | null
+          trading_window_start?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      bot_logs: {
+        Row: {
+          action_type: string
+          admin_id: string | null
+          category: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          new_value: string | null
+          previous_value: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_value?: string | null
+          previous_value?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_value?: string | null
+          previous_value?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      bot_strategy_settings: {
+        Row: {
+          id: string
+          max_daily_platform_loss: number
+          max_loss_per_trade: number
+          max_roi_percent: number
+          max_trade_duration_min: number
+          min_roi_percent: number
+          min_trade_duration_min: number
+          slippage_control_percent: number
+          spread_tolerance_percent: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          max_daily_platform_loss?: number
+          max_loss_per_trade?: number
+          max_roi_percent?: number
+          max_trade_duration_min?: number
+          min_roi_percent?: number
+          min_trade_duration_min?: number
+          slippage_control_percent?: number
+          spread_tolerance_percent?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          max_daily_platform_loss?: number
+          max_loss_per_trade?: number
+          max_roi_percent?: number
+          max_trade_duration_min?: number
+          min_roi_percent?: number
+          min_trade_duration_min?: number
+          slippage_control_percent?: number
+          spread_tolerance_percent?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       deposits: {
         Row: {
           admin_note: string | null
