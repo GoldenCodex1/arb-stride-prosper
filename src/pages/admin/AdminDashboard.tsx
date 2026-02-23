@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Users, ShieldCheck, AlertTriangle, Wallet, ArrowUpFromLine, DollarSign, ArrowDownToLine, Clock } from "lucide-react";
+import { Users, ShieldCheck, ArrowUpFromLine, ArrowDownToLine, DollarSign, Receipt } from "lucide-react";
 import MetricCard from "@/components/dashboard/MetricCard";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +41,30 @@ export default function AdminDashboard() {
     },
   });
 
+  const { data: totalDepositSum } = useQuery({
+    queryKey: ["admin-total-deposits"],
+    queryFn: async () => {
+      const { data } = await supabase.from("deposits").select("amount").eq("status", "approved");
+      return data?.reduce((s, d) => s + Number(d.amount), 0) ?? 0;
+    },
+  });
+
+  const { data: totalWithdrawalSum } = useQuery({
+    queryKey: ["admin-total-withdrawals"],
+    queryFn: async () => {
+      const { data } = await supabase.from("withdrawals").select("amount").eq("status", "approved");
+      return data?.reduce((s, w) => s + Number(w.amount), 0) ?? 0;
+    },
+  });
+
+  const { data: recentTransactions } = useQuery({
+    queryKey: ["admin-recent-transactions"],
+    queryFn: async () => {
+      const { data } = await supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(5);
+      return data ?? [];
+    },
+  });
+
   const pendingDepositTotal = pendingDeposits?.reduce((s, d) => s + Number(d.amount), 0) ?? 0;
   const pendingWithdrawalTotal = pendingWithdrawals?.reduce((s, w) => s + Number(w.amount), 0) ?? 0;
 
@@ -68,11 +92,13 @@ export default function AdminDashboard() {
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       <h1 className="font-display font-bold text-xl sm:text-2xl">Admin Dashboard</h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <MetricCard label="Total Users" value={String(profileCount ?? 0)} icon={Users} />
         <MetricCard label="KYC Pending" value={String(kycPending ?? 0)} icon={ShieldCheck} />
         <MetricCard label="Deposit Queue" value={String(pendingDeposits?.length ?? 0)} icon={ArrowDownToLine} />
         <MetricCard label="Pending Withdrawals" value={fmt(pendingWithdrawalTotal)} icon={ArrowUpFromLine} />
+        <MetricCard label="Total Deposits" value={fmt(totalDepositSum ?? 0)} icon={DollarSign} />
+        <MetricCard label="Total Withdrawals" value={fmt(totalWithdrawalSum ?? 0)} icon={Receipt} />
       </div>
 
       {/* Deposit Queue */}
@@ -144,6 +170,39 @@ export default function AdminDashboard() {
                   </tr>
                 )) : (
                   <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">No pending withdrawals.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div>
+        <h2 className="font-display font-semibold text-lg mb-3">Recent Transactions</h2>
+        <div className="glass-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/30">
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">User</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Type</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Amount</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Description</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentTransactions && recentTransactions.length > 0 ? recentTransactions.map((t) => (
+                  <tr key={t.id} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs">{t.user_id.slice(0, 8)}...</td>
+                    <td className="px-4 py-3 capitalize">{t.type.replace(/_/g, " ")}</td>
+                    <td className={`px-4 py-3 font-medium ${Number(t.amount) >= 0 ? "text-success" : "text-destructive"}`}>{fmt(Number(t.amount))}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t.description ?? "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDistanceToNow(new Date(t.created_at), { addSuffix: true })}</td>
+                  </tr>
+                )) : (
+                  <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">No transactions yet.</td></tr>
                 )}
               </tbody>
             </table>
