@@ -67,6 +67,7 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="trades" element={<AdminTrades />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="users/:id" element={<AdminUserDetail />} />
               <Route path="bot" element={<AdminBotSettings />} />
               <Route path="deposits" element={<AdminDeposits />} />
               <Route path="withdrawals" element={<AdminWithdrawals />} />
