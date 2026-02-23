@@ -7,6 +7,7 @@ import {
   Bot,
   ArrowDownToLine,
   ArrowUpFromLine,
+  DollarSign,
   Users,
   History,
   Gift,
@@ -24,6 +25,7 @@ import {
 const adminNavItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
   { label: "Trade Opportunities", path: "/admin/trades", icon: TrendingUp },
+  { label: "Finance", path: "/admin/finance", icon: DollarSign },
   { label: "Auto Bot Settings", path: "/admin/bot", icon: Bot },
   { label: "Manual Deposits", path: "/admin/deposits", icon: ArrowDownToLine },
   { label: "Withdrawals", path: "/admin/withdrawals", icon: ArrowUpFromLine },

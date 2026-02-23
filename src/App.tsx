@@ -29,6 +29,7 @@ import AdminDeposits from "@/pages/admin/AdminDeposits";
 import AdminWithdrawals from "@/pages/admin/AdminWithdrawals";
 import AdminWallets from "@/pages/admin/AdminWallets";
 import AdminTransactions from "@/pages/admin/AdminTransactions";
+import AdminFinance from "@/pages/admin/AdminFinance";
 import AdminReferrals from "@/pages/admin/AdminReferrals";
 import AdminBotSettings from "@/pages/admin/AdminBotSettings";
 import AdminSecurityLogs from "@/pages/admin/AdminSecurityLogs";
@@ -72,6 +73,7 @@ const App = () => (
               <Route path="deposits" element={<AdminDeposits />} />
               <Route path="withdrawals" element={<AdminWithdrawals />} />
               <Route path="transactions" element={<AdminTransactions />} />
+              <Route path="finance" element={<AdminFinance />} />
               <Route path="referrals" element={<AdminReferrals />} />
               <Route path="kyc" element={<AdminKyc />} />
               <Route path="wallets" element={<AdminWallets />} />
