@@ -69,6 +69,8 @@ const App = () => (
             <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
               <Route index element={<AdminDashboard />} />
               <Route path="trades" element={<AdminTrades />} />
+              <Route path="trades/create" element={<AdminTradeCreate />} />
+              <Route path="trades/:id" element={<AdminTradeDetail />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="users/:id" element={<AdminUserDetail />} />
               <Route path="bot" element={<AdminBotSettings />} />
