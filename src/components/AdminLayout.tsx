@@ -27,10 +27,8 @@ const adminNavItems = [
   { label: "Trade Opportunities", path: "/admin/trades", icon: TrendingUp },
   { label: "Finance", path: "/admin/finance", icon: DollarSign },
   { label: "Auto Bot Settings", path: "/admin/bot", icon: Bot },
-  { label: "Manual Deposits", path: "/admin/deposits", icon: ArrowDownToLine },
-  { label: "Withdrawals", path: "/admin/withdrawals", icon: ArrowUpFromLine },
   { label: "Users", path: "/admin/users", icon: Users },
-  { label: "Transactions", path: "/admin/transactions", icon: History },
+  
   { label: "Referrals", path: "/admin/referrals", icon: Gift },
   { label: "KYC", path: "/admin/kyc", icon: ShieldCheck },
   { label: "Wallet Settings", path: "/admin/wallets", icon: Wallet },
