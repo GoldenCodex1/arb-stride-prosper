@@ -311,6 +311,30 @@ export type Database = {
         }
         Relationships: []
       }
+      totp_secrets: {
+        Row: {
+          created_at: string
+          encrypted_secret: string
+          id: string
+          user_id: string
+          verified: boolean
+        }
+        Insert: {
+          created_at?: string
+          encrypted_secret: string
+          id?: string
+          user_id: string
+          verified?: boolean
+        }
+        Update: {
+          created_at?: string
+          encrypted_secret?: string
+          id?: string
+          user_id?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       trade_entries: {
         Row: {
           amount: number

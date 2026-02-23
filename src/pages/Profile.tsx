@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Shield, Key, Smartphone, Upload, FileCheck, Loader2, Camera } from "lucide-react";
+import { User, Mail, Shield, Key, Upload, FileCheck, Loader2, Camera } from "lucide-react";
+import TwoFactorSetup from "@/components/TwoFactorSetup";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -94,15 +95,8 @@ export default function Profile() {
     else toast.success("Password reset link sent to your email");
   };
 
-  const handleToggle2FA = async () => {
-    if (!user) return;
-    const newValue = !profile?.two_factor_enabled;
-    const { error } = await supabase.from("profiles").update({ two_factor_enabled: newValue }).eq("user_id", user.id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success(newValue ? "Two-factor authentication enabled" : "Two-factor authentication disabled");
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-    }
+  const handle2FAComplete = () => {
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
   };
 
   const handleKycUpload = async () => {
@@ -218,18 +212,10 @@ export default function Profile() {
             {sendingReset ? "Sending..." : "Change Password"}
           </button>
         </div>
-        <div className="flex items-center justify-between py-3">
-          <div className="flex items-center gap-3">
-            <Smartphone className="w-4 h-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm font-medium">Two-Factor Authentication</p>
-              <p className="text-xs text-muted-foreground">{profile?.two_factor_enabled ? "Enabled" : "Not enabled"}</p>
-            </div>
-          </div>
-          <button onClick={handleToggle2FA} className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${profile?.two_factor_enabled ? "bg-destructive/10 text-destructive hover:bg-destructive/20" : "bg-primary/10 text-primary hover:bg-primary/20"}`}>
-            {profile?.two_factor_enabled ? "Disable" : "Enable"}
-          </button>
-        </div>
+        <TwoFactorSetup
+          isEnabled={!!profile?.two_factor_enabled}
+          onComplete={handle2FAComplete}
+        />
       </div>
 
       <div className="glass-card p-6 space-y-4">
