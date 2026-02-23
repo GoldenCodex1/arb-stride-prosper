@@ -66,6 +66,7 @@ export default function Auth() {
             .maybeSingle();
 
           if (profile?.two_factor_enabled) {
+            setLoading(false);
             setNeeds2FA(true);
             return;
           }
