@@ -28,7 +28,7 @@ const adminNavItems = [
   { label: "Finance", path: "/admin/finance", icon: DollarSign },
   { label: "Auto Bot Settings", path: "/admin/bot", icon: Bot },
   { label: "Users", path: "/admin/users", icon: Users },
-  { label: "Transactions", path: "/admin/transactions", icon: History },
+  
   { label: "Referrals", path: "/admin/referrals", icon: Gift },
   { label: "KYC", path: "/admin/kyc", icon: ShieldCheck },
   { label: "Wallet Settings", path: "/admin/wallets", icon: Wallet },
