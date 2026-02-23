@@ -2,3 +2,6 @@ project_id = "zwxbyrbfngfbteboqkmt"
 
 [functions.totp]
 verify_jwt = false
+
+[functions.settle-trades]
+verify_jwt = false
