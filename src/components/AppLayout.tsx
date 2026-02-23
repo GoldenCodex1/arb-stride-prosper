@@ -9,7 +9,6 @@ import {
   History,
   Users,
   User,
-  Bell,
   Menu,
   X,
   Shield,
@@ -20,6 +19,7 @@ import {
   Receipt,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import NotificationBell from "@/components/NotificationBell";
 
 const userNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -68,9 +68,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2">
-            <button className="relative p-2 rounded-lg hover:bg-secondary transition-colors">
-              <Bell className="w-5 h-5 text-muted-foreground" />
-            </button>
+            <NotificationBell />
 
             {isAdmin && (
               <Link to="/admin" className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
