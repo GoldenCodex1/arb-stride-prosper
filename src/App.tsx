@@ -22,6 +22,7 @@ import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminTrades from "@/pages/admin/AdminTrades";
 import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminUserDetail from "@/pages/admin/AdminUserDetail";
 import AdminKyc from "@/pages/admin/AdminKyc";
 import AdminHomepageControl from "@/pages/admin/AdminHomepageControl";
 import AdminDeposits from "@/pages/admin/AdminDeposits";
@@ -66,6 +67,7 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="trades" element={<AdminTrades />} />
               <Route path="users" element={<AdminUsers />} />
+              <Route path="users/:id" element={<AdminUserDetail />} />
               <Route path="bot" element={<AdminBotSettings />} />
               <Route path="deposits" element={<AdminDeposits />} />
               <Route path="withdrawals" element={<AdminWithdrawals />} />
