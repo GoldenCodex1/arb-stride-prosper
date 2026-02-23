@@ -1,107 +1,98 @@
 import { motion } from "framer-motion";
-import { Save } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { Server, DollarSign, Gift, Bot, Shield, Cpu } from "lucide-react";
+import InfraSection from "./system/InfraSection";
+import ConfigField from "./system/ConfigField";
 
 export default function AdminSystemSettings() {
-  const queryClient = useQueryClient();
-
-  const { data: stats } = useQuery({
-    queryKey: ["admin-platform-stats"],
-    queryFn: async () => {
-      const { data } = await supabase.from("platform_stats").select("*").order("key");
-      return data ?? [];
-    },
-  });
-
-  const [editValues, setEditValues] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (stats) {
-      const values: Record<string, string> = {};
-      stats.forEach((s) => { values[s.id] = s.value; });
-      setEditValues(values);
-    }
-  }, [stats]);
-
-  const handleSave = async (id: string) => {
-    const { error } = await supabase.from("platform_stats").update({ value: editValues[id] }).eq("id", id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Stat updated");
-      queryClient.invalidateQueries({ queryKey: ["admin-platform-stats"] });
-    }
-  };
-
-  const toggleAutoCalc = async (id: string, current: boolean) => {
-    const { error } = await supabase.from("platform_stats").update({ auto_calculate: !current }).eq("id", id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success(current ? "Manual mode" : "Auto-calculate enabled");
-      queryClient.invalidateQueries({ queryKey: ["admin-platform-stats"] });
-    }
-  };
-
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <h1 className="font-display font-bold text-xl sm:text-2xl">System Settings</h1>
-
-      <div className="space-y-4">
-        <h2 className="font-display font-semibold text-lg">Platform Statistics</h2>
-        <p className="text-sm text-muted-foreground">These values are displayed on the homepage. Toggle auto-calculate to pull live data or set manually.</p>
-
-        <div className="glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/30">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Key</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Label</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Value</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Auto</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats?.map((s) => (
-                  <tr key={s.id} className="border-b border-border/10 hover:bg-secondary/30 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs">{s.key}</td>
-                    <td className="px-4 py-3 font-medium">{s.label}</td>
-                    <td className="px-4 py-3">
-                      <input
-                        value={editValues[s.id] ?? s.value}
-                        onChange={(e) => setEditValues({ ...editValues, [s.id]: e.target.value })}
-                        disabled={s.auto_calculate}
-                        className="bg-secondary border border-border/30 rounded px-2 py-1 text-xs w-32 text-foreground disabled:opacity-50"
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => toggleAutoCalc(s.id, s.auto_calculate)}
-                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${s.auto_calculate ? "bg-success/15 text-success" : "bg-secondary text-muted-foreground"}`}
-                      >
-                        {s.auto_calculate ? "Auto" : "Manual"}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      {!s.auto_calculate && (
-                        <button onClick={() => handleSave(s.id)} className="text-xs text-primary hover:underline flex items-center gap-1">
-                          <Save className="w-3 h-3" /> Save
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {(!stats || stats.length === 0) && (
-                  <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No platform stats configured.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div>
+        <h1 className="font-display font-bold text-xl sm:text-2xl">Platform Infrastructure Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">Core system configuration — changes apply platform-wide.</p>
       </div>
+
+      {/* 1 — Platform Core */}
+      <InfraSection title="Platform Core Settings" description="Core platform identity and access controls." table="system_config" sectionKey="system_config">
+        {(data: any, update) => (
+          <>
+            <ConfigField label="Platform Name" type="text" value={data.platform_name} onChange={(v) => update("platform_name", v)} />
+            <ConfigField label="Maintenance Mode" type="toggle" value={data.maintenance_mode} onChange={(v) => update("maintenance_mode", v)} hint="Disables all user access when enabled" />
+            <ConfigField label="Registration Enabled" type="toggle" value={data.registration_enabled} onChange={(v) => update("registration_enabled", v)} />
+            <ConfigField label="KYC Required" type="toggle" value={data.kyc_required} onChange={(v) => update("kyc_required", v)} />
+            <ConfigField label="Email Verification Required" type="toggle" value={data.email_verification_required} onChange={(v) => update("email_verification_required", v)} />
+            <ConfigField label="Session Timeout" type="number" value={data.session_timeout_minutes} onChange={(v) => update("session_timeout_minutes", Number(v))} suffix="min" />
+          </>
+        )}
+      </InfraSection>
+
+      {/* 2 — Financial Rules */}
+      <InfraSection title="Financial Rules" description="Deposit, withdrawal, and fee configuration." table="system_financial_rules" sectionKey="financial_rules">
+        {(data: any, update) => (
+          <>
+            <ConfigField label="Minimum Deposit" type="number" value={data.min_deposit} onChange={(v) => update("min_deposit", Number(v))} suffix="$" />
+            <ConfigField label="Minimum Withdrawal" type="number" value={data.min_withdrawal} onChange={(v) => update("min_withdrawal", Number(v))} suffix="$" />
+            <ConfigField label="Withdrawal Fee" type="number" value={data.withdrawal_fee_percent} onChange={(v) => update("withdrawal_fee_percent", Number(v))} suffix="%" />
+            <ConfigField label="Deposit Confirmation Required" type="toggle" value={data.deposit_confirmation_required} onChange={(v) => update("deposit_confirmation_required", v)} />
+            <ConfigField label="Manual Withdrawal Approval" type="toggle" value={data.manual_withdrawal_approval} onChange={(v) => update("manual_withdrawal_approval", v)} />
+          </>
+        )}
+      </InfraSection>
+
+      {/* 3 — Referral Config */}
+      <InfraSection title="Referral Configuration" description="Default referral rewards and multi-level settings." table="referral_config" sectionKey="referral_config">
+        {(data: any, update) => (
+          <>
+            <ConfigField label="Default Commission" type="number" value={data.default_commission_percent} onChange={(v) => update("default_commission_percent", Number(v))} suffix="%" />
+            <ConfigField label="Multi-Level Referral" type="toggle" value={data.multi_level_enabled} onChange={(v) => update("multi_level_enabled", v)} />
+            <ConfigField label="Level 2 Commission" type="number" value={data.level2_commission_percent} onChange={(v) => update("level2_commission_percent", Number(v))} suffix="%" />
+            <ConfigField label="Referral Bonus Cap" type="number" value={data.referral_bonus_cap} onChange={(v) => update("referral_bonus_cap", Number(v))} suffix="$" />
+          </>
+        )}
+      </InfraSection>
+
+      {/* 4 — Default Bot Settings */}
+      <InfraSection title="Default Bot Settings" description="Applied to new users only — does not override live bot controls." table="bot_default_config" sectionKey="bot_default_config">
+        {(data: any, update) => (
+          <>
+            <ConfigField label="Default Risk Level" type="select" value={data.default_risk_level} options={[
+              { label: "Conservative", value: "conservative" },
+              { label: "Moderate", value: "moderate" },
+              { label: "Aggressive", value: "aggressive" },
+            ]} onChange={(v) => update("default_risk_level", v)} />
+            <ConfigField label="Daily Trade Cap" type="number" value={data.default_daily_trade_cap} onChange={(v) => update("default_daily_trade_cap", Number(v))} />
+            <ConfigField label="Capital Allocation" type="number" value={data.default_capital_allocation_percent} onChange={(v) => update("default_capital_allocation_percent", Number(v))} suffix="%" />
+            <ConfigField label="Max Exposure" type="number" value={data.default_max_exposure_percent} onChange={(v) => update("default_max_exposure_percent", Number(v))} suffix="%" />
+          </>
+        )}
+      </InfraSection>
+
+      {/* 5 — Security Settings */}
+      <InfraSection title="Security Settings" description="Authentication and access protection rules." table="security_config" sectionKey="security_config">
+        {(data: any, update) => (
+          <>
+            <ConfigField label="Require 2FA" type="toggle" value={data.two_factor_required} onChange={(v) => update("two_factor_required", v)} />
+            <ConfigField label="Max Login Attempts" type="number" value={data.max_login_attempts} onChange={(v) => update("max_login_attempts", Number(v))} />
+            <ConfigField label="IP Lock" type="toggle" value={data.ip_lock_enabled} onChange={(v) => update("ip_lock_enabled", v)} />
+            <ConfigField label="Admin IP Whitelist" type="text" value={data.admin_ip_whitelist} onChange={(v) => update("admin_ip_whitelist", v)} hint="Comma-separated IPs" />
+            <ConfigField label="Withdrawal Cooldown" type="number" value={data.withdrawal_cooldown_hours} onChange={(v) => update("withdrawal_cooldown_hours", Number(v))} suffix="hrs" />
+          </>
+        )}
+      </InfraSection>
+
+      {/* 6 — API & Engine */}
+      <InfraSection title="API & Engine Settings" description="Exchange connectivity and sync configuration." table="engine_config" sectionKey="engine_config">
+        {(data: any, update) => (
+          <>
+            <ConfigField label="Exchange API Status" type="select" value={data.exchange_api_status} options={[
+              { label: "Connected", value: "connected" },
+              { label: "Disconnected", value: "disconnected" },
+              { label: "Error", value: "error" },
+            ]} onChange={(v) => update("exchange_api_status", v)} />
+            <ConfigField label="Auto-Sync Interval" type="number" value={data.auto_sync_interval_seconds} onChange={(v) => update("auto_sync_interval_seconds", Number(v))} suffix="sec" />
+            <ConfigField label="WebSocket Enabled" type="toggle" value={data.websocket_enabled} onChange={(v) => update("websocket_enabled", v)} />
+          </>
+        )}
+      </InfraSection>
     </motion.div>
   );
 }

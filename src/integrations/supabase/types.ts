@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_action_logs: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          field_name: string
+          id: string
+          ip_address: string | null
+          new_value: string | null
+          old_value: string | null
+          section: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          field_name: string
+          id?: string
+          ip_address?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          section: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          field_name?: string
+          id?: string
+          ip_address?: string | null
+          new_value?: string | null
+          old_value?: string | null
+          section?: string
+        }
+        Relationships: []
+      }
       admin_logs: {
         Row: {
           action: string
@@ -170,6 +203,33 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           wallet_allocation_percent?: number
+        }
+        Relationships: []
+      }
+      bot_default_config: {
+        Row: {
+          default_capital_allocation_percent: number
+          default_daily_trade_cap: number
+          default_max_exposure_percent: number
+          default_risk_level: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          default_capital_allocation_percent?: number
+          default_daily_trade_cap?: number
+          default_max_exposure_percent?: number
+          default_risk_level?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          default_capital_allocation_percent?: number
+          default_daily_trade_cap?: number
+          default_max_exposure_percent?: number
+          default_risk_level?: string
+          id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -332,6 +392,30 @@ export type Database = {
         }
         Relationships: []
       }
+      engine_config: {
+        Row: {
+          auto_sync_interval_seconds: number
+          exchange_api_status: string
+          id: string
+          updated_at: string
+          websocket_enabled: boolean
+        }
+        Insert: {
+          auto_sync_interval_seconds?: number
+          exchange_api_status?: string
+          id?: string
+          updated_at?: string
+          websocket_enabled?: boolean
+        }
+        Update: {
+          auto_sync_interval_seconds?: number
+          exchange_api_status?: string
+          id?: string
+          updated_at?: string
+          websocket_enabled?: boolean
+        }
+        Relationships: []
+      }
       homepage_faq: {
         Row: {
           answer: string
@@ -491,6 +575,33 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_config: {
+        Row: {
+          default_commission_percent: number
+          id: string
+          level2_commission_percent: number
+          multi_level_enabled: boolean
+          referral_bonus_cap: number
+          updated_at: string
+        }
+        Insert: {
+          default_commission_percent?: number
+          id?: string
+          level2_commission_percent?: number
+          multi_level_enabled?: boolean
+          referral_bonus_cap?: number
+          updated_at?: string
+        }
+        Update: {
+          default_commission_percent?: number
+          id?: string
+          level2_commission_percent?: number
+          multi_level_enabled?: boolean
+          referral_bonus_cap?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           commission_percent: number
@@ -515,6 +626,99 @@ export type Database = {
           referred_id?: string
           referrer_id?: string
           total_commission?: number
+        }
+        Relationships: []
+      }
+      security_config: {
+        Row: {
+          admin_ip_whitelist: string
+          id: string
+          ip_lock_enabled: boolean
+          max_login_attempts: number
+          two_factor_required: boolean
+          updated_at: string
+          withdrawal_cooldown_hours: number
+        }
+        Insert: {
+          admin_ip_whitelist?: string
+          id?: string
+          ip_lock_enabled?: boolean
+          max_login_attempts?: number
+          two_factor_required?: boolean
+          updated_at?: string
+          withdrawal_cooldown_hours?: number
+        }
+        Update: {
+          admin_ip_whitelist?: string
+          id?: string
+          ip_lock_enabled?: boolean
+          max_login_attempts?: number
+          two_factor_required?: boolean
+          updated_at?: string
+          withdrawal_cooldown_hours?: number
+        }
+        Relationships: []
+      }
+      system_config: {
+        Row: {
+          email_verification_required: boolean
+          id: string
+          kyc_required: boolean
+          maintenance_mode: boolean
+          platform_name: string
+          registration_enabled: boolean
+          session_timeout_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          email_verification_required?: boolean
+          id?: string
+          kyc_required?: boolean
+          maintenance_mode?: boolean
+          platform_name?: string
+          registration_enabled?: boolean
+          session_timeout_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          email_verification_required?: boolean
+          id?: string
+          kyc_required?: boolean
+          maintenance_mode?: boolean
+          platform_name?: string
+          registration_enabled?: boolean
+          session_timeout_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      system_financial_rules: {
+        Row: {
+          deposit_confirmation_required: boolean
+          id: string
+          manual_withdrawal_approval: boolean
+          min_deposit: number
+          min_withdrawal: number
+          updated_at: string
+          withdrawal_fee_percent: number
+        }
+        Insert: {
+          deposit_confirmation_required?: boolean
+          id?: string
+          manual_withdrawal_approval?: boolean
+          min_deposit?: number
+          min_withdrawal?: number
+          updated_at?: string
+          withdrawal_fee_percent?: number
+        }
+        Update: {
+          deposit_confirmation_required?: boolean
+          id?: string
+          manual_withdrawal_approval?: boolean
+          min_deposit?: number
+          min_withdrawal?: number
+          updated_at?: string
+          withdrawal_fee_percent?: number
         }
         Relationships: []
       }
