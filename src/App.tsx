@@ -22,9 +22,17 @@ import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminTrades from "@/pages/admin/AdminTrades";
 import AdminUsers from "@/pages/admin/AdminUsers";
-import AdminPlaceholder from "@/pages/admin/AdminPlaceholder";
 import AdminKyc from "@/pages/admin/AdminKyc";
 import AdminHomepageControl from "@/pages/admin/AdminHomepageControl";
+import AdminDeposits from "@/pages/admin/AdminDeposits";
+import AdminWithdrawals from "@/pages/admin/AdminWithdrawals";
+import AdminWallets from "@/pages/admin/AdminWallets";
+import AdminTransactions from "@/pages/admin/AdminTransactions";
+import AdminReferrals from "@/pages/admin/AdminReferrals";
+import AdminBotSettings from "@/pages/admin/AdminBotSettings";
+import AdminSecurityLogs from "@/pages/admin/AdminSecurityLogs";
+import AdminApiSettings from "@/pages/admin/AdminApiSettings";
+import AdminSystemSettings from "@/pages/admin/AdminSystemSettings";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,16 +66,16 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="trades" element={<AdminTrades />} />
               <Route path="users" element={<AdminUsers />} />
-              <Route path="bot" element={<AdminPlaceholder title="Auto Bot Settings" />} />
-              <Route path="deposits" element={<AdminPlaceholder title="Manual Deposits" />} />
-              <Route path="withdrawals" element={<AdminPlaceholder title="Withdrawals" />} />
-              <Route path="transactions" element={<AdminPlaceholder title="Transactions" />} />
-              <Route path="referrals" element={<AdminPlaceholder title="Referrals" />} />
+              <Route path="bot" element={<AdminBotSettings />} />
+              <Route path="deposits" element={<AdminDeposits />} />
+              <Route path="withdrawals" element={<AdminWithdrawals />} />
+              <Route path="transactions" element={<AdminTransactions />} />
+              <Route path="referrals" element={<AdminReferrals />} />
               <Route path="kyc" element={<AdminKyc />} />
-              <Route path="wallets" element={<AdminPlaceholder title="Wallet Settings" />} />
-              <Route path="api" element={<AdminPlaceholder title="API Settings" />} />
-              <Route path="system" element={<AdminPlaceholder title="System Settings" />} />
-              <Route path="security" element={<AdminPlaceholder title="Security Logs" />} />
+              <Route path="wallets" element={<AdminWallets />} />
+              <Route path="api" element={<AdminApiSettings />} />
+              <Route path="system" element={<AdminSystemSettings />} />
+              <Route path="security" element={<AdminSecurityLogs />} />
               <Route path="homepage-control" element={<AdminHomepageControl />} />
             </Route>
 
