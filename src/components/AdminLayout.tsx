@@ -24,7 +24,7 @@ import {
 
 const adminNavItems = [
   { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
-  { label: "Trade Opportunities", path: "/admin/trades", icon: TrendingUp },
+  { label: "Trade Engine", path: "/admin/trades", icon: TrendingUp },
   { label: "Finance", path: "/admin/finance", icon: DollarSign },
   { label: "Auto Bot Settings", path: "/admin/bot", icon: Bot },
   { label: "Users", path: "/admin/users", icon: Users },

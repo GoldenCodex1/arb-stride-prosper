@@ -882,7 +882,11 @@ export type Database = {
       }
       trades: {
         Row: {
+          auto_close: boolean
+          capital_cap: number | null
           created_at: string
+          created_by: string | null
+          description: string | null
           duration_hours: number
           expires_at: string | null
           id: string
@@ -890,13 +894,20 @@ export type Database = {
           min_investment: number
           risk_level: string
           roi_percent: number
+          settlement_date: string | null
+          settlement_mode: string
           slot_limit: number
           slots_filled: number
           status: string
+          strategy_type: string
           title: string
         }
         Insert: {
+          auto_close?: boolean
+          capital_cap?: number | null
           created_at?: string
+          created_by?: string | null
+          description?: string | null
           duration_hours: number
           expires_at?: string | null
           id?: string
@@ -904,13 +915,20 @@ export type Database = {
           min_investment: number
           risk_level?: string
           roi_percent: number
+          settlement_date?: string | null
+          settlement_mode?: string
           slot_limit?: number
           slots_filled?: number
           status?: string
+          strategy_type?: string
           title: string
         }
         Update: {
+          auto_close?: boolean
+          capital_cap?: number | null
           created_at?: string
+          created_by?: string | null
+          description?: string | null
           duration_hours?: number
           expires_at?: string | null
           id?: string
@@ -918,9 +936,12 @@ export type Database = {
           min_investment?: number
           risk_level?: string
           roi_percent?: number
+          settlement_date?: string | null
+          settlement_mode?: string
           slot_limit?: number
           slots_filled?: number
           status?: string
+          strategy_type?: string
           title?: string
         }
         Relationships: []
