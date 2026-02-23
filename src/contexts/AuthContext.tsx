@@ -27,20 +27,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Check admin role
-          const { data } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id)
-            .eq("role", "admin")
-            .maybeSingle();
-          setIsAdmin(!!data);
+          // Check admin role with timeout to prevent hangs
+          try {
+            const { data } = await Promise.race([
+              supabase
+                .from("user_roles")
+                .select("role")
+                .eq("user_id", session.user.id)
+                .eq("role", "admin")
+                .maybeSingle(),
+              new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error("timeout")), 3000)
+              ),
+            ]);
+            setIsAdmin(!!data);
+          } catch {
+            setIsAdmin(false);
+          }
         } else {
           setIsAdmin(false);
         }
@@ -49,19 +59,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
+    // Then get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .eq("role", "admin")
-          .maybeSingle()
-          .then(({ data }) => setIsAdmin(!!data));
+        Promise.resolve(
+          supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", session.user.id)
+            .eq("role", "admin")
+            .maybeSingle()
+        )
+          .then(({ data }) => setIsAdmin(!!data))
+          .catch(() => setIsAdmin(false))
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
