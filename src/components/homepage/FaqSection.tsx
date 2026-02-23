@@ -21,7 +21,8 @@ export default function FaqSection() {
     supabase
       .from("homepage_faq")
       .select("id, question, answer")
-      .order("sort_order")
+      .eq("is_visible", true)
+      .order("display_order")
       .then(({ data }) => {
         if (data) setFaqs(data);
       });

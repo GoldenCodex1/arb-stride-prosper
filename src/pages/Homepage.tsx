@@ -8,10 +8,12 @@ import LiveStats from "@/components/homepage/LiveStats";
 import FaqSection from "@/components/homepage/FaqSection";
 import HomepageFooter from "@/components/homepage/HomepageFooter";
 import HomepageNav from "@/components/homepage/HomepageNav";
+import SeoHead from "@/components/homepage/SeoHead";
 
 export default function Homepage() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <SeoHead />
       <HomepageNav />
       <HeroSection />
       <HowItWorks />
