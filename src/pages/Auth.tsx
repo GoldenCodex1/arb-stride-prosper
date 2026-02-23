@@ -59,16 +59,25 @@ export default function Auth() {
 
         // Check if user has 2FA enabled
         if (signInData.user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("two_factor_enabled")
-            .eq("user_id", signInData.user.id)
-            .maybeSingle();
+          try {
+            const { data: profile } = await Promise.race([
+              supabase
+                .from("profiles")
+                .select("two_factor_enabled")
+                .eq("user_id", signInData.user.id)
+                .maybeSingle(),
+              new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error("timeout")), 5000)
+              ),
+            ]);
 
-          if (profile?.two_factor_enabled) {
-            setLoading(false);
-            setNeeds2FA(true);
-            return;
+            if (profile?.two_factor_enabled) {
+              setLoading(false);
+              setNeeds2FA(true);
+              return;
+            }
+          } catch {
+            // Profile query failed or timed out, proceed without 2FA check
           }
         }
         navigate("/dashboard");
