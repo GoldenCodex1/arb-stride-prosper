@@ -347,6 +347,42 @@ export type Database = {
         }
         Relationships: []
       }
+      deposit_settings: {
+        Row: {
+          address_rotation_enabled: boolean
+          auto_approve: boolean
+          confirmations_required: number
+          currency: string
+          id: string
+          manual_review_threshold: number
+          max_amount: number
+          min_amount: number
+          updated_at: string
+        }
+        Insert: {
+          address_rotation_enabled?: boolean
+          auto_approve?: boolean
+          confirmations_required?: number
+          currency: string
+          id?: string
+          manual_review_threshold?: number
+          max_amount?: number
+          min_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          address_rotation_enabled?: boolean
+          auto_approve?: boolean
+          confirmations_required?: number
+          currency?: string
+          id?: string
+          manual_review_threshold?: number
+          max_amount?: number
+          min_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       deposits: {
         Row: {
           admin_note: string | null
@@ -539,6 +575,30 @@ export type Database = {
           status?: string
           submitted_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      liquidity_rules: {
+        Row: {
+          auto_disable_withdrawals: boolean
+          emergency_threshold_percent: number
+          id: string
+          min_buffer_percent: number
+          updated_at: string
+        }
+        Insert: {
+          auto_disable_withdrawals?: boolean
+          emergency_threshold_percent?: number
+          id?: string
+          min_buffer_percent?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_disable_withdrawals?: boolean
+          emergency_threshold_percent?: number
+          id?: string
+          min_buffer_percent?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1077,30 +1137,96 @@ export type Database = {
       wallets: {
         Row: {
           address: string
+          archived_at: string | null
+          balance: number
           created_at: string
           currency: string
           id: string
           is_active: boolean
+          last_synced: string | null
           min_deposit: number
+          name: string
           network: string
+          usage_type: string
+          wallet_type: string
         }
         Insert: {
           address: string
+          archived_at?: string | null
+          balance?: number
           created_at?: string
           currency: string
           id?: string
           is_active?: boolean
+          last_synced?: string | null
           min_deposit?: number
+          name?: string
           network: string
+          usage_type?: string
+          wallet_type?: string
         }
         Update: {
           address?: string
+          archived_at?: string | null
+          balance?: number
           created_at?: string
           currency?: string
           id?: string
           is_active?: boolean
+          last_synced?: string | null
           min_deposit?: number
+          name?: string
           network?: string
+          usage_type?: string
+          wallet_type?: string
+        }
+        Relationships: []
+      }
+      withdrawal_settings: {
+        Row: {
+          auto_approve_threshold: number
+          cooldown_minutes: number
+          currency: string
+          daily_limit: number
+          fee_type: string
+          fee_value: number
+          high_risk_threshold: number
+          id: string
+          max_amount: number
+          min_amount: number
+          require_2fa: boolean
+          require_ip_match: boolean
+          updated_at: string
+        }
+        Insert: {
+          auto_approve_threshold?: number
+          cooldown_minutes?: number
+          currency: string
+          daily_limit?: number
+          fee_type?: string
+          fee_value?: number
+          high_risk_threshold?: number
+          id?: string
+          max_amount?: number
+          min_amount?: number
+          require_2fa?: boolean
+          require_ip_match?: boolean
+          updated_at?: string
+        }
+        Update: {
+          auto_approve_threshold?: number
+          cooldown_minutes?: number
+          currency?: string
+          daily_limit?: number
+          fee_type?: string
+          fee_value?: number
+          high_risk_threshold?: number
+          id?: string
+          max_amount?: number
+          min_amount?: number
+          require_2fa?: boolean
+          require_ip_match?: boolean
+          updated_at?: string
         }
         Relationships: []
       }
