@@ -80,6 +80,137 @@ export type Database = {
         }
         Relationships: []
       }
+      api_credentials: {
+        Row: {
+          allowed_currencies: string[]
+          allowed_networks: string[]
+          auto_confirm: boolean
+          created_at: string
+          encrypted_api_key: string
+          encrypted_ipn_secret: string
+          fee_handling: string
+          gateway_id: string
+          id: string
+          mode: string
+          updated_at: string
+          webhook_secret: string
+          webhook_url: string
+        }
+        Insert: {
+          allowed_currencies?: string[]
+          allowed_networks?: string[]
+          auto_confirm?: boolean
+          created_at?: string
+          encrypted_api_key?: string
+          encrypted_ipn_secret?: string
+          fee_handling?: string
+          gateway_id: string
+          id?: string
+          mode?: string
+          updated_at?: string
+          webhook_secret?: string
+          webhook_url?: string
+        }
+        Update: {
+          allowed_currencies?: string[]
+          allowed_networks?: string[]
+          auto_confirm?: boolean
+          created_at?: string
+          encrypted_api_key?: string
+          encrypted_ipn_secret?: string
+          fee_handling?: string
+          gateway_id?: string
+          id?: string
+          mode?: string
+          updated_at?: string
+          webhook_secret?: string
+          webhook_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_credentials_gateway_id_fkey"
+            columns: ["gateway_id"]
+            isOneToOne: false
+            referencedRelation: "api_gateways"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_gateways: {
+        Row: {
+          active: boolean
+          auto_disable: boolean
+          consecutive_failures: number
+          created_at: string
+          environment: string
+          id: string
+          last_health_check: string | null
+          max_calls_per_minute: number
+          max_failures_before_disable: number
+          provider_name: string
+          status: string
+          updated_at: string
+          webhook_status: string
+        }
+        Insert: {
+          active?: boolean
+          auto_disable?: boolean
+          consecutive_failures?: number
+          created_at?: string
+          environment?: string
+          id?: string
+          last_health_check?: string | null
+          max_calls_per_minute?: number
+          max_failures_before_disable?: number
+          provider_name: string
+          status?: string
+          updated_at?: string
+          webhook_status?: string
+        }
+        Update: {
+          active?: boolean
+          auto_disable?: boolean
+          consecutive_failures?: number
+          created_at?: string
+          environment?: string
+          id?: string
+          last_health_check?: string | null
+          max_calls_per_minute?: number
+          max_failures_before_disable?: number
+          provider_name?: string
+          status?: string
+          updated_at?: string
+          webhook_status?: string
+        }
+        Relationships: []
+      }
+      api_health_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          latency_ms: number | null
+          provider: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          provider: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          provider?: string
+          status?: string
+        }
+        Relationships: []
+      }
       api_settings: {
         Row: {
           id: string
@@ -1179,6 +1310,36 @@ export type Database = {
           network?: string
           usage_type?: string
           wallet_type?: string
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          error_message: string | null
+          id: string
+          payload_hash: string | null
+          provider: string
+          received_at: string
+          response_code: number | null
+          status: string
+        }
+        Insert: {
+          error_message?: string | null
+          id?: string
+          payload_hash?: string | null
+          provider: string
+          received_at?: string
+          response_code?: number | null
+          status?: string
+        }
+        Update: {
+          error_message?: string | null
+          id?: string
+          payload_hash?: string | null
+          provider?: string
+          received_at?: string
+          response_code?: number | null
+          status?: string
         }
         Relationships: []
       }
