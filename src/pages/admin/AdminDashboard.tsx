@@ -21,6 +21,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import SettlementEngineStatus from "@/components/admin/SettlementEngineStatus";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
@@ -187,6 +188,11 @@ export default function AdminDashboard() {
           <KpiCard label="Bot Status" value={botStatus ? "Running" : "Paused"} icon={Bot} badge={{ text: botStatus ? "Online" : "Offline", color: botStatus ? "success" : "destructive" }} />
           <KpiCard label="Withdrawal Risk" value={wdRisk} icon={ShieldAlert} badge={{ text: wdRisk, color: wdRiskColor as any }} />
         </div>
+      </motion.div>
+
+      {/* ── SETTLEMENT ENGINE ── */}
+      <motion.div variants={item}>
+        <SettlementEngineStatus />
       </motion.div>
 
       {/* ── 2. FINANCIAL FLOW ── */}

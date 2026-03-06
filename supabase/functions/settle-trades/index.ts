@@ -67,10 +67,16 @@ Deno.serve(async (req) => {
       });
 
       if (uniqueTrades.length === 0) {
-        return new Response(
-          JSON.stringify({ success: true, message: "No matured trades", transitions: transitionResult }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      // Update last cron run metric even when no trades
+      await supabase
+        .from("system_runtime_metrics")
+        .update({ metric_value: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq("metric_name", "last_cron_run");
+
+      return new Response(
+        JSON.stringify({ success: true, message: "No matured trades", transitions: transitionResult }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
       }
 
       // Process each trade
@@ -112,6 +118,12 @@ Deno.serve(async (req) => {
         results.push({ trade_id: trade.id, ...(settleResult as object) });
       }
     }
+
+    // Update last cron run metric
+    await supabase
+      .from("system_runtime_metrics")
+      .update({ metric_value: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("metric_name", "last_cron_run");
 
     return new Response(
       JSON.stringify({ success: true, settlements: results }),
