@@ -1036,6 +1036,27 @@ export type Database = {
         }
         Relationships: []
       }
+      system_runtime_metrics: {
+        Row: {
+          id: string
+          metric_name: string
+          metric_value: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          metric_name: string
+          metric_value?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          metric_name?: string
+          metric_value?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       totp_secrets: {
         Row: {
           created_at: string
