@@ -35,6 +35,96 @@ function sortObject(obj: Record<string, unknown>): Record<string, unknown> {
   return sorted;
 }
 
+async function processReferralCommission(
+  supabase: any,
+  userId: string,
+  depositId: string,
+  depositAmount: number
+) {
+  try {
+    // Check if commission already paid for this deposit
+    const { data: existing } = await supabase
+      .from("referral_commissions")
+      .select("id")
+      .eq("deposit_id", depositId)
+      .maybeSingle();
+
+    if (existing) {
+      console.log(`Referral commission already paid for deposit ${depositId}`);
+      return;
+    }
+
+    // Check if user was referred
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("referred_by")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!profile?.referred_by) return;
+
+    const referrerId = profile.referred_by;
+
+    // Get referral config
+    const { data: config } = await supabase
+      .from("referral_config")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
+
+    const commissionRate = config?.default_commission_percent ?? 1;
+    const commissionAmount = depositAmount * (commissionRate / 100);
+
+    if (commissionAmount <= 0) return;
+
+    // Insert commission record (unique on deposit_id prevents duplicates)
+    const { error: commError } = await supabase
+      .from("referral_commissions")
+      .insert({
+        referrer_id: referrerId,
+        referred_user_id: userId,
+        deposit_id: depositId,
+        commission_amount: commissionAmount,
+      });
+
+    if (commError) {
+      if (commError.code === "23505") {
+        console.log("Duplicate commission prevented by unique constraint");
+        return;
+      }
+      console.error("Commission insert error:", commError);
+      return;
+    }
+
+    // Credit referrer ledger
+    await supabase.from("transactions").insert({
+      user_id: referrerId,
+      type: "referral",
+      amount: commissionAmount,
+      description: `Referral commission (${commissionRate}%) from deposit by ${userId.slice(0, 8)}...`,
+    });
+
+    // Update referral total_commission
+    const { data: referral } = await supabase
+      .from("referrals")
+      .select("id, total_commission")
+      .eq("referrer_id", referrerId)
+      .eq("referred_id", userId)
+      .maybeSingle();
+
+    if (referral) {
+      await supabase
+        .from("referrals")
+        .update({ total_commission: Number(referral.total_commission) + commissionAmount })
+        .eq("id", referral.id);
+    }
+
+    console.log(`Credited ${commissionAmount} referral commission to ${referrerId}`);
+  } catch (err) {
+    console.error("Referral commission error:", err);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -98,7 +188,7 @@ Deno.serve(async (req) => {
     const paymentId = String(body.payment_id);
     const amount = Number(body.actually_paid || body.pay_amount);
     const currency = String(body.pay_currency || "USDT").toUpperCase();
-    const orderId = body.order_id; // should contain user_id
+    const orderId = body.order_id;
     const txHash = body.payin_hash || null;
 
     if (!paymentId || !orderId || isNaN(amount) || amount <= 0) {
@@ -108,7 +198,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Step 3: Amount tolerance check (allow 1% variance for crypto)
+    // Step 3: Amount tolerance check (1% variance)
     const invoiceAmount = Number(body.price_amount || body.pay_amount);
     if (invoiceAmount > 0 && amount < invoiceAmount * 0.99) {
       console.error(`Amount mismatch: paid=${amount}, expected=${invoiceAmount}`);
@@ -125,7 +215,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Step 4: Idempotency - check if already processed
+    // Step 4: Idempotency
     const { data: existing } = await supabase
       .from("deposits")
       .select("id")
@@ -141,8 +231,8 @@ Deno.serve(async (req) => {
     }
 
     // Step 5: Create deposit record
-    const userId = orderId; // order_id should be set to user_id when creating invoice
-    const { error: depositError } = await supabase.from("deposits").insert({
+    const userId = orderId;
+    const { data: deposit, error: depositError } = await supabase.from("deposits").insert({
       user_id: userId,
       amount,
       currency,
@@ -150,7 +240,7 @@ Deno.serve(async (req) => {
       tx_hash: paymentId,
       network: body.pay_currency || null,
       status: "approved",
-    });
+    }).select("id").single();
 
     if (depositError) {
       console.error("Deposit insert error:", depositError);
@@ -160,7 +250,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Step 6: Credit user ledger (idempotent check via reference_id)
+    // Step 6: Credit user ledger
     const { data: existingTx } = await supabase
       .from("transactions")
       .select("id")
@@ -169,20 +259,21 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!existingTx) {
-      const { error: txError } = await supabase.from("transactions").insert({
+      await supabase.from("transactions").insert({
         user_id: userId,
         type: "deposit",
         amount,
         description: `NOWPayments deposit (${currency}) - ${txHash || paymentId}`,
-        reference_id: null, // payment_id is string, reference_id is uuid
+        reference_id: null,
       });
-
-      if (txError) {
-        console.error("Transaction insert error:", txError);
-      }
     }
 
-    // Update webhook log to success
+    // Step 7: Process referral commission
+    if (deposit?.id) {
+      await processReferralCommission(supabase, userId, deposit.id, amount);
+    }
+
+    // Update webhook log
     await supabase.from("webhook_logs").insert({
       provider: "nowpayments",
       status: "processed",

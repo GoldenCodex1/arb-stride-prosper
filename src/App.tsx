@@ -37,6 +37,7 @@ import AdminBotSettings from "@/pages/admin/AdminBotSettings";
 import AdminSecurityLogs from "@/pages/admin/AdminSecurityLogs";
 import AdminApiSettings from "@/pages/admin/AdminApiSettings";
 import AdminSystemSettings from "@/pages/admin/AdminSystemSettings";
+import AdminSettlementLogs from "@/pages/admin/AdminSettlementLogs";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -85,6 +86,7 @@ const App = () => (
               <Route path="system" element={<AdminSystemSettings />} />
               <Route path="security" element={<AdminSecurityLogs />} />
               <Route path="homepage-control" element={<AdminHomepageControl />} />
+              <Route path="trades/settlement-logs" element={<AdminSettlementLogs />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
