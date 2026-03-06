@@ -832,6 +832,33 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_commissions: {
+        Row: {
+          commission_amount: number
+          created_at: string
+          deposit_id: string
+          id: string
+          referred_user_id: string
+          referrer_id: string
+        }
+        Insert: {
+          commission_amount?: number
+          created_at?: string
+          deposit_id: string
+          id?: string
+          referred_user_id: string
+          referrer_id: string
+        }
+        Update: {
+          commission_amount?: number
+          created_at?: string
+          deposit_id?: string
+          id?: string
+          referred_user_id?: string
+          referrer_id?: string
+        }
+        Relationships: []
+      }
       referral_config: {
         Row: {
           default_commission_percent: number
