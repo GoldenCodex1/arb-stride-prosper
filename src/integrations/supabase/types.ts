@@ -1495,6 +1495,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_withdrawal: {
+        Args: { _admin_id: string; _withdrawal_id: string }
+        Returns: Json
+      }
       auto_transition_trades: { Args: never; Returns: Json }
       has_role: {
         Args: {
