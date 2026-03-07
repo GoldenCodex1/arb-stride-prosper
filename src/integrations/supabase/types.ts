@@ -1446,10 +1446,15 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          network: string | null
+          processed_at: string | null
+          processed_by_admin: string | null
           status: string
+          tx_hash: string | null
           updated_at: string
           user_id: string
           wallet_address: string
+          withdrawal_fee: number
         }
         Insert: {
           admin_note?: string | null
@@ -1457,10 +1462,15 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          network?: string | null
+          processed_at?: string | null
+          processed_by_admin?: string | null
           status?: string
+          tx_hash?: string | null
           updated_at?: string
           user_id: string
           wallet_address: string
+          withdrawal_fee?: number
         }
         Update: {
           admin_note?: string | null
@@ -1468,10 +1478,15 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          network?: string | null
+          processed_at?: string | null
+          processed_by_admin?: string | null
           status?: string
+          tx_hash?: string | null
           updated_at?: string
           user_id?: string
           wallet_address?: string
+          withdrawal_fee?: number
         }
         Relationships: []
       }
