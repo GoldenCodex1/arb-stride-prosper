@@ -303,7 +303,7 @@ export default function AdminWithdrawals() {
                 <div className="flex flex-wrap gap-2 mb-4">
                   {selected.status === "pending" && (
                     <>
-                      <Button size="sm" onClick={() => handleStatusChange(selected.id, "approved")} className="gap-1.5 bg-blue-600 hover:bg-blue-700">
+                      <Button size="sm" onClick={() => handleApprove(selected.id)} className="gap-1.5 bg-blue-600 hover:bg-blue-700">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Approve
                       </Button>
                       <Button size="sm" variant="destructive" onClick={() => handleStatusChange(selected.id, "rejected")} className="gap-1.5">
