@@ -105,6 +105,21 @@ export default function AdminWithdrawals() {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin-withdrawals"] });
 
+  const handleApprove = async (id: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("Not authenticated"); return; }
+    const { data, error } = await supabase.rpc("approve_withdrawal", {
+      _withdrawal_id: id,
+      _admin_id: user.id,
+    });
+    if (error) { toast.error(error.message); return; }
+    const result = data as unknown as { success: boolean; error?: string };
+    if (!result.success) { toast.error(result.error ?? "Approval failed"); return; }
+    toast.success("Withdrawal approved — balance deducted from user ledger");
+    invalidate();
+    queryClient.invalidateQueries({ queryKey: ["admin-withdrawal-balance"] });
+  };
+
   const handleStatusChange = async (id: string, newStatus: string, extra?: Record<string, unknown>) => {
     const w = withdrawals?.find((x) => x.id === id);
     const { data: { user } } = await supabase.auth.getUser();
@@ -288,7 +303,7 @@ export default function AdminWithdrawals() {
                 <div className="flex flex-wrap gap-2 mb-4">
                   {selected.status === "pending" && (
                     <>
-                      <Button size="sm" onClick={() => handleStatusChange(selected.id, "approved")} className="gap-1.5 bg-blue-600 hover:bg-blue-700">
+                      <Button size="sm" onClick={() => handleApprove(selected.id)} className="gap-1.5 bg-blue-600 hover:bg-blue-700">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Approve
                       </Button>
                       <Button size="sm" variant="destructive" onClick={() => handleStatusChange(selected.id, "rejected")} className="gap-1.5">
