@@ -1,26 +1,20 @@
 name: Build and Deploy
-
 on:
   push:
     branches: [main]
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
-
       - name: Install dependencies
         run: npm install
-
       - name: Build
         run: npm run build
-
       - name: Commit dist to repo
         run: |
           git config user.name "github-actions"
@@ -28,9 +22,3 @@ jobs:
           git add dist -f
           git commit -m "chore: deploy build" || echo "No changes to commit"
           git push
-```
-
-### Step 3 — Remove `dist` from `.gitignore`
-Open `.gitignore` in your repo and delete or comment out:
-```
-# dist        ← comment it out like this
