@@ -43,6 +43,8 @@ export default function Dashboard() {
     activeTradeEntries,
     recentTransactions,
   } = useDashboardData();
+  const { plan, tradesToday, activeAutoTrades } = useUserPlan();
+  const fmtLimit = (n: number) => n >= 999999 ? "∞" : String(n);
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
