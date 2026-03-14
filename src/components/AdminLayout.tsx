@@ -11,6 +11,7 @@ import {
   Users,
   History,
   Gift,
+  Crown,
   ShieldCheck,
   Wallet,
   Settings,
