@@ -17,6 +17,7 @@ import Transactions from "@/pages/Transactions";
 import AutoBot from "@/pages/AutoBot";
 import Referral from "@/pages/Referral";
 import Profile from "@/pages/Profile";
+import Plans from "@/pages/Plans";
 import Auth from "@/pages/Auth";
 import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
