@@ -90,6 +90,21 @@ export default function AutoBot() {
         </div>
       </div>
 
+      {/* Plan Limits Warning */}
+      {plan && (!canTrade || !canAutoTrade) && (
+        <div className="glass-card p-4 flex items-center gap-3" style={{ background: "hsl(var(--warning) / 0.08)", border: "1px solid hsl(var(--warning) / 0.2)" }}>
+          <AlertTriangle className="w-5 h-5 text-warning shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-warning">Plan Limits Reached</p>
+            <p className="text-xs text-muted-foreground">
+              {!canTrade ? `Daily trade limit reached (${tradesToday}/${plan.max_trades_per_day}). ` : ""}
+              {!canAutoTrade ? `Auto bot slot limit reached (${activeAutoTrades}/${plan.max_auto_trade_slots}). ` : ""}
+              Upgrade your plan for higher limits.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Settings */}
       <div className="glass-card p-6 space-y-4">
         <h3 className="font-display font-semibold flex items-center gap-2">

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUserPlan } from "@/hooks/useUserPlan";
 import type { Tables } from "@/integrations/supabase/types";
 
 const riskColor: Record<string, string> = {
@@ -18,9 +19,21 @@ interface Props {
 export default function SuggestedTrades({ trades }: Props) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { plan, canTrade } = useUserPlan();
 
   const joinTrade = async (trade: Tables<"trades">) => {
     if (!user) return;
+
+    // Plan limit enforcement
+    if (plan && !canTrade) {
+      toast.error("You have reached your daily trade limit for your current plan.");
+      return;
+    }
+    if (plan && Number(trade.min_investment) > Number(plan.max_trade_amount)) {
+      toast.error(`Trade amount exceeds your plan limit of $${Number(plan.max_trade_amount).toLocaleString()}.`);
+      return;
+    }
+
     const { error } = await supabase.from("trade_entries").insert({
       trade_id: trade.id,
       user_id: user.id,
@@ -32,6 +45,7 @@ export default function SuggestedTrades({ trades }: Props) {
       toast.success(`Joined ${trade.title}`);
       queryClient.invalidateQueries({ queryKey: ["active-trade-entries"] });
       queryClient.invalidateQueries({ queryKey: ["suggested-trades"] });
+      queryClient.invalidateQueries({ queryKey: ["trades-today-count"] });
     }
   };
 
