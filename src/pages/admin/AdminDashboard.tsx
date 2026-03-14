@@ -160,6 +160,17 @@ export default function AdminDashboard() {
     return data ?? [];
   }, ...qOpts });
 
+  // ── Section 5: Plan Distribution ──
+  const { data: planDistribution } = useQuery({ queryKey: ["ecc-plan-dist", refreshKey], queryFn: async () => {
+    const { data: plans } = await supabase.from("plans").select("id, name");
+    if (!plans) return [];
+    const { data: profiles } = await supabase.from("profiles").select("plan_id");
+    return plans.map((p: any) => ({
+      name: p.name,
+      count: profiles?.filter((pr: any) => pr.plan_id === p.id).length ?? 0,
+    }));
+  }, ...qOpts });
+
   // Withdrawal risk
   const wdRisk = (pendingWithdrawalAmt ?? 0) > 20000 ? "Critical" : (pendingWithdrawalAmt ?? 0) > 5000 ? "Elevated" : "Normal";
   const wdRiskColor = wdRisk === "Critical" ? "destructive" : wdRisk === "Elevated" ? "warning" : "success";
