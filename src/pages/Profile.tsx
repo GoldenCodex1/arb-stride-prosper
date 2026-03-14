@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Shield, Key, Upload, FileCheck, Loader2, Camera } from "lucide-react";
+import { User, Mail, Shield, Key, Upload, FileCheck, Loader2, Camera, Zap } from "lucide-react";
 import TwoFactorSetup from "@/components/TwoFactorSetup";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -146,8 +148,11 @@ export default function Profile() {
     }
   };
 
+  const { plan } = useUserPlan();
   const kycStatus = kyc?.status ?? profile?.kyc_status ?? "pending";
   const kycBadge = kycStatus === "approved" ? "status-badge-success" : kycStatus === "rejected" ? "status-badge-danger" : "status-badge-warning";
+
+  const fmtLimit = (n: number) => n >= 999999 ? "Unlimited" : n.toLocaleString();
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6">
@@ -195,6 +200,30 @@ export default function Profile() {
           </button>
         </div>
       </div>
+
+      {/* Current Plan Section */}
+      {plan && (
+        <div className="glass-card p-6 space-y-4">
+          <h3 className="font-display font-semibold flex items-center gap-2">
+            <Zap className="w-4 h-4 text-primary" /> Current Plan
+          </h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-display font-bold text-primary">{plan.name}</p>
+              <p className="text-xs text-muted-foreground">{plan.description}</p>
+            </div>
+            <Link to="/plans" className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+              Upgrade Plan
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="flex justify-between p-2 bg-secondary/50 rounded-lg"><span className="text-muted-foreground">Max Trades/Day</span><span className="font-semibold">{fmtLimit(plan.max_trades_per_day)}</span></div>
+            <div className="flex justify-between p-2 bg-secondary/50 rounded-lg"><span className="text-muted-foreground">Max Trade Amount</span><span className="font-semibold">${fmtLimit(plan.max_trade_amount)}</span></div>
+            <div className="flex justify-between p-2 bg-secondary/50 rounded-lg"><span className="text-muted-foreground">Auto Bot Slots</span><span className="font-semibold">{fmtLimit(plan.max_auto_trade_slots)}</span></div>
+            <div className="flex justify-between p-2 bg-secondary/50 rounded-lg"><span className="text-muted-foreground">Daily Withdrawal</span><span className="font-semibold">${fmtLimit(plan.daily_withdrawal_limit)}</span></div>
+          </div>
+        </div>
+      )}
 
       <div className="glass-card p-6 space-y-4">
         <h3 className="font-display font-semibold flex items-center gap-2">

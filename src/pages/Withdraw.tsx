@@ -4,6 +4,7 @@ import { ArrowUpFromLine } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserPlan } from "@/hooks/useUserPlan";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -41,6 +42,24 @@ export default function Withdraw() {
     enabled: !!user,
   });
 
+  const { plan } = useUserPlan();
+
+  // Query 24h withdrawals for plan limit check
+  const { data: recentWithdrawalTotal } = useQuery({
+    queryKey: ["24h-withdrawals", user?.id],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data } = await supabase
+        .from("withdrawals")
+        .select("amount")
+        .eq("user_id", user!.id)
+        .gte("created_at", since)
+        .neq("status", "rejected");
+      return data?.reduce((sum, w) => sum + Number(w.amount), 0) ?? 0;
+    },
+    enabled: !!user,
+  });
+
   const handleSubmit = async () => {
     if (!user) return;
     const numAmount = Number(amount);
@@ -54,6 +73,12 @@ export default function Withdraw() {
     }
     if (!walletAddress.trim()) {
       toast.error("Enter wallet address");
+      return;
+    }
+
+    // Plan withdrawal limit check
+    if (plan && ((recentWithdrawalTotal ?? 0) + numAmount) > Number(plan.daily_withdrawal_limit)) {
+      toast.error("You have reached the withdrawal limit for your current plan.");
       return;
     }
 

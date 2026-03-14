@@ -1,14 +1,15 @@
 import { motion } from "framer-motion";
-import { Bot, Power, ShieldAlert, TrendingUp, TrendingDown, BarChart3, Timer, Settings } from "lucide-react";
+import { Bot, Power, ShieldAlert, TrendingUp, TrendingDown, BarChart3, Timer, Settings, AlertTriangle } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserPlan } from "@/hooks/useUserPlan";
 import { toast } from "sonner";
 
 export default function AutoBot() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-
+  const { plan, canTrade, canAutoTrade, tradesToday, activeAutoTrades } = useUserPlan();
   const { data: bot } = useQuery({
     queryKey: ["bot-activity", user?.id],
     queryFn: async () => {
@@ -20,6 +21,19 @@ export default function AutoBot() {
 
   const toggleBot = async () => {
     if (!user || !bot) return;
+
+    // If turning ON, check plan limits
+    if (!bot.bot_enabled && plan) {
+      if (!canTrade) {
+        toast.error("Auto bot paused because your plan trading limits were reached.");
+        return;
+      }
+      if (!canAutoTrade) {
+        toast.error("Auto bot paused because your plan auto trade slot limit was reached.");
+        return;
+      }
+    }
+
     const { error } = await supabase.from("bot_activity").update({ bot_enabled: !bot.bot_enabled }).eq("user_id", user.id);
     if (error) toast.error(error.message);
     else {
@@ -75,6 +89,21 @@ export default function AutoBot() {
           <StatCard icon={Timer} label="Daily Limit" value={String(bot?.daily_trade_limit ?? 15)} />
         </div>
       </div>
+
+      {/* Plan Limits Warning */}
+      {plan && (!canTrade || !canAutoTrade) && (
+        <div className="glass-card p-4 flex items-center gap-3" style={{ background: "hsl(var(--warning) / 0.08)", border: "1px solid hsl(var(--warning) / 0.2)" }}>
+          <AlertTriangle className="w-5 h-5 text-warning shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-warning">Plan Limits Reached</p>
+            <p className="text-xs text-muted-foreground">
+              {!canTrade ? `Daily trade limit reached (${tradesToday}/${plan.max_trades_per_day}). ` : ""}
+              {!canAutoTrade ? `Auto bot slot limit reached (${activeAutoTrades}/${plan.max_auto_trade_slots}). ` : ""}
+              Upgrade your plan for higher limits.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Settings */}
       <div className="glass-card p-6 space-y-4">

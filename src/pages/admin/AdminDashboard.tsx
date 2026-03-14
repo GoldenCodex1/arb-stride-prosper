@@ -160,6 +160,17 @@ export default function AdminDashboard() {
     return data ?? [];
   }, ...qOpts });
 
+  // ── Section 5: Plan Distribution ──
+  const { data: planDistribution } = useQuery({ queryKey: ["ecc-plan-dist", refreshKey], queryFn: async () => {
+    const { data: plans } = await supabase.from("plans").select("id, name");
+    if (!plans) return [];
+    const { data: profiles } = await supabase.from("profiles").select("plan_id");
+    return plans.map((p: any) => ({
+      name: p.name,
+      count: profiles?.filter((pr: any) => pr.plan_id === p.id).length ?? 0,
+    }));
+  }, ...qOpts });
+
   // Withdrawal risk
   const wdRisk = (pendingWithdrawalAmt ?? 0) > 20000 ? "Critical" : (pendingWithdrawalAmt ?? 0) > 5000 ? "Elevated" : "Normal";
   const wdRiskColor = wdRisk === "Critical" ? "destructive" : wdRisk === "Elevated" ? "warning" : "success";
@@ -275,6 +286,20 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+        </div>
+      </motion.div>
+
+      {/* ── 5. PLAN DISTRIBUTION ── */}
+      <motion.div variants={item}>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">User Plan Distribution</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {planDistribution?.map((p) => (
+            <div key={p.name} className="glass-card p-4 text-center">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{p.name}</p>
+              <p className="text-2xl font-display font-bold">{p.count}</p>
+              <p className="text-xs text-muted-foreground">users</p>
+            </div>
+          ))}
         </div>
       </motion.div>
     </motion.div>

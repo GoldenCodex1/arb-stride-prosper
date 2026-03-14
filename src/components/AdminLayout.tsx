@@ -11,6 +11,7 @@ import {
   Users,
   History,
   Gift,
+  Crown,
   ShieldCheck,
   Wallet,
   Settings,
@@ -29,6 +30,7 @@ const adminNavItems = [
   { label: "Auto Bot Settings", path: "/admin/bot", icon: Bot },
   { label: "Users", path: "/admin/users", icon: Users },
   
+  { label: "Plans", path: "/admin/plans", icon: Crown },
   { label: "Referrals", path: "/admin/referrals", icon: Gift },
   { label: "KYC", path: "/admin/kyc", icon: ShieldCheck },
   { label: "Wallet Settings", path: "/admin/wallets", icon: Wallet },

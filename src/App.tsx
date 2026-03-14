@@ -17,6 +17,7 @@ import Transactions from "@/pages/Transactions";
 import AutoBot from "@/pages/AutoBot";
 import Referral from "@/pages/Referral";
 import Profile from "@/pages/Profile";
+import Plans from "@/pages/Plans";
 import Auth from "@/pages/Auth";
 import ResetPassword from "@/pages/ResetPassword";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -38,6 +39,7 @@ import AdminSecurityLogs from "@/pages/admin/AdminSecurityLogs";
 import AdminApiSettings from "@/pages/admin/AdminApiSettings";
 import AdminSystemSettings from "@/pages/admin/AdminSystemSettings";
 import AdminSettlementLogs from "@/pages/admin/AdminSettlementLogs";
+import AdminPlans from "@/pages/admin/AdminPlans";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +66,7 @@ const App = () => (
             <Route path="/transactions" element={<ProtectedRoute><AppLayout><Transactions /></AppLayout></ProtectedRoute>} />
             <Route path="/auto-bot" element={<ProtectedRoute><AppLayout><AutoBot /></AppLayout></ProtectedRoute>} />
             <Route path="/referral" element={<ProtectedRoute><AppLayout><Referral /></AppLayout></ProtectedRoute>} />
+            <Route path="/plans" element={<ProtectedRoute><AppLayout><Plans /></AppLayout></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
 
             {/* Protected Admin Routes */}
@@ -86,6 +89,7 @@ const App = () => (
               <Route path="system" element={<AdminSystemSettings />} />
               <Route path="security" element={<AdminSecurityLogs />} />
               <Route path="homepage-control" element={<AdminHomepageControl />} />
+              <Route path="plans" element={<AdminPlans />} />
               <Route path="trades/settlement-logs" element={<AdminSettlementLogs />} />
             </Route>
 
