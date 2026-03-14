@@ -39,6 +39,7 @@ import AdminSecurityLogs from "@/pages/admin/AdminSecurityLogs";
 import AdminApiSettings from "@/pages/admin/AdminApiSettings";
 import AdminSystemSettings from "@/pages/admin/AdminSystemSettings";
 import AdminSettlementLogs from "@/pages/admin/AdminSettlementLogs";
+import AdminPlans from "@/pages/admin/AdminPlans";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
