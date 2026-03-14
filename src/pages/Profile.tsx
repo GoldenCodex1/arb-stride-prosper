@@ -148,8 +148,11 @@ export default function Profile() {
     }
   };
 
+  const { plan } = useUserPlan();
   const kycStatus = kyc?.status ?? profile?.kyc_status ?? "pending";
   const kycBadge = kycStatus === "approved" ? "status-badge-success" : kycStatus === "rejected" ? "status-badge-danger" : "status-badge-warning";
+
+  const fmtLimit = (n: number) => n >= 999999 ? "Unlimited" : n.toLocaleString();
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6">
