@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { Bot, Power, ShieldAlert, TrendingUp, TrendingDown, BarChart3, Timer, Settings } from "lucide-react";
+import { Bot, Power, ShieldAlert, TrendingUp, TrendingDown, BarChart3, Timer, Settings, AlertTriangle } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserPlan } from "@/hooks/useUserPlan";
 import { toast } from "sonner";
 
 export default function AutoBot() {
