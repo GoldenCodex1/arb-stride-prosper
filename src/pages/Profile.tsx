@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { User, Mail, Shield, Key, Upload, FileCheck, Loader2, Camera } from "lucide-react";
+import { User, Mail, Shield, Key, Upload, FileCheck, Loader2, Camera, Zap } from "lucide-react";
 import TwoFactorSetup from "@/components/TwoFactorSetup";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
