@@ -9,7 +9,7 @@ import { toast } from "sonner";
 export default function AutoBot() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-
+  const { plan, canTrade, canAutoTrade, tradesToday, activeAutoTrades } = useUserPlan();
   const { data: bot } = useQuery({
     queryKey: ["bot-activity", user?.id],
     queryFn: async () => {
