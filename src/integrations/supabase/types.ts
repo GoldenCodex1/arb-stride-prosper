@@ -763,6 +763,48 @@ export type Database = {
         }
         Relationships: []
       }
+      plans: {
+        Row: {
+          created_at: string
+          daily_withdrawal_limit: number
+          description: string
+          id: string
+          is_active: boolean
+          max_auto_trade_slots: number
+          max_trade_amount: number
+          max_trades_per_day: number
+          monthly_price: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_withdrawal_limit?: number
+          description?: string
+          id?: string
+          is_active?: boolean
+          max_auto_trade_slots?: number
+          max_trade_amount?: number
+          max_trades_per_day?: number
+          monthly_price?: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_withdrawal_limit?: number
+          description?: string
+          id?: string
+          is_active?: boolean
+          max_auto_trade_slots?: number
+          max_trade_amount?: number
+          max_trades_per_day?: number
+          monthly_price?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_stats: {
         Row: {
           auto_calculate: boolean
@@ -798,6 +840,9 @@ export type Database = {
           id: string
           is_frozen: boolean
           kyc_status: string
+          plan_expires_at: string | null
+          plan_id: string | null
+          plan_started_at: string | null
           referral_code: string | null
           referred_by: string | null
           two_factor_enabled: boolean
@@ -811,6 +856,9 @@ export type Database = {
           id?: string
           is_frozen?: boolean
           kyc_status?: string
+          plan_expires_at?: string | null
+          plan_id?: string | null
+          plan_started_at?: string | null
           referral_code?: string | null
           referred_by?: string | null
           two_factor_enabled?: boolean
@@ -824,13 +872,24 @@ export type Database = {
           id?: string
           is_frozen?: boolean
           kyc_status?: string
+          plan_expires_at?: string | null
+          plan_id?: string | null
+          plan_started_at?: string | null
           referral_code?: string | null
           referred_by?: string | null
           two_factor_enabled?: boolean
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_commissions: {
         Row: {
