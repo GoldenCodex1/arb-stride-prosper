@@ -89,6 +89,7 @@ const App = () => (
               <Route path="system" element={<AdminSystemSettings />} />
               <Route path="security" element={<AdminSecurityLogs />} />
               <Route path="homepage-control" element={<AdminHomepageControl />} />
+              <Route path="plans" element={<AdminPlans />} />
               <Route path="trades/settlement-logs" element={<AdminSettlementLogs />} />
             </Route>
 
