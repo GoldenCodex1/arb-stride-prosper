@@ -201,6 +201,30 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* Current Plan Section */}
+      {plan && (
+        <div className="glass-card p-6 space-y-4">
+          <h3 className="font-display font-semibold flex items-center gap-2">
+            <Zap className="w-4 h-4 text-primary" /> Current Plan
+          </h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-lg font-display font-bold text-primary">{plan.name}</p>
+              <p className="text-xs text-muted-foreground">{plan.description}</p>
+            </div>
+            <Link to="/plans" className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+              Upgrade Plan
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="flex justify-between p-2 bg-secondary/50 rounded-lg"><span className="text-muted-foreground">Max Trades/Day</span><span className="font-semibold">{fmtLimit(plan.max_trades_per_day)}</span></div>
+            <div className="flex justify-between p-2 bg-secondary/50 rounded-lg"><span className="text-muted-foreground">Max Trade Amount</span><span className="font-semibold">${fmtLimit(plan.max_trade_amount)}</span></div>
+            <div className="flex justify-between p-2 bg-secondary/50 rounded-lg"><span className="text-muted-foreground">Auto Bot Slots</span><span className="font-semibold">{fmtLimit(plan.max_auto_trade_slots)}</span></div>
+            <div className="flex justify-between p-2 bg-secondary/50 rounded-lg"><span className="text-muted-foreground">Daily Withdrawal</span><span className="font-semibold">${fmtLimit(plan.daily_withdrawal_limit)}</span></div>
+          </div>
+        </div>
+      )}
+
       <div className="glass-card p-6 space-y-4">
         <h3 className="font-display font-semibold flex items-center gap-2">
           <Shield className="w-4 h-4 text-primary" /> Security
