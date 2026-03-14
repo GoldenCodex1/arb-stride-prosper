@@ -6,6 +6,7 @@ import {
   Clock,
   Zap,
   Users,
+  Shield,
 } from "lucide-react";
 import MetricCard from "@/components/dashboard/MetricCard";
 import BotControlStrip from "@/components/dashboard/BotControlStrip";
@@ -13,6 +14,8 @@ import SuggestedTrades from "@/components/dashboard/SuggestedTrades";
 import ActiveTrades from "@/components/dashboard/ActiveTrades";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import { Link } from "react-router-dom";
 
 const container = {
   hidden: {},
