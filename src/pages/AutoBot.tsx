@@ -21,6 +21,19 @@ export default function AutoBot() {
 
   const toggleBot = async () => {
     if (!user || !bot) return;
+
+    // If turning ON, check plan limits
+    if (!bot.bot_enabled && plan) {
+      if (!canTrade) {
+        toast.error("Auto bot paused because your plan trading limits were reached.");
+        return;
+      }
+      if (!canAutoTrade) {
+        toast.error("Auto bot paused because your plan auto trade slot limit was reached.");
+        return;
+      }
+    }
+
     const { error } = await supabase.from("bot_activity").update({ bot_enabled: !bot.bot_enabled }).eq("user_id", user.id);
     if (error) toast.error(error.message);
     else {
